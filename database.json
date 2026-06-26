@@ -1,0 +1,345 @@
+{
+  "users": [
+    {
+      "id": "cit-1",
+      "name": "R. Prakash",
+      "phone": "9876543210",
+      "password": "password123",
+      "address": "14, Sathy Road, Gandhipuram, Coimbatore - 641012",
+      "zone": "Central Zone",
+      "trustScore": 85,
+      "isVerified": true,
+      "avatarUrl": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80",
+      "role": "citizen",
+      "createdAt": "2026-01-10T10:00:00Z"
+    },
+    {
+      "id": "cit-2",
+      "name": "Vignesh Kumar",
+      "phone": "9876543211",
+      "password": "password123",
+      "address": "82, Avinashi Road, Peelamedu, Coimbatore - 641004",
+      "zone": "East Zone",
+      "trustScore": 90,
+      "isVerified": true,
+      "avatarUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80",
+      "role": "citizen",
+      "createdAt": "2026-02-15T10:00:00Z"
+    },
+    {
+      "id": "usr-off-1",
+      "name": "Officer Ganeshan",
+      "phone": "9999999999",
+      "password": "password123",
+      "address": "Coimbatore Corporation Office, Town Hall",
+      "zone": "Central Zone",
+      "trustScore": 100,
+      "isVerified": true,
+      "avatarUrl": "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&q=80",
+      "role": "officer",
+      "createdAt": "2026-01-01T10:00:00Z"
+    },
+    {
+      "id": "admin-1",
+      "name": "Admin Ravi Teja",
+      "phone": "8888888888",
+      "password": "password123",
+      "address": "Head Office, Coimbatore Corporation",
+      "zone": "Head Office",
+      "trustScore": 100,
+      "isVerified": true,
+      "avatarUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80",
+      "role": "admin",
+      "createdAt": "2026-01-01T10:00:00Z"
+    }
+  ],
+  "proofs": [
+    {
+      "id": "proof-1",
+      "userId": "cit-1",
+      "documentType": "Aadhaar",
+      "documentNumber": "552388129940",
+      "fileName": "aadhaar_scanned.png",
+      "extractedName": "R. Prakash",
+      "extractedAddress": "14, Sathy Road, Gandhipuram, Coimbatore - 641012",
+      "faceMatchScore": 94.5,
+      "fraudDetected": false,
+      "reasoning": "OCR Extraction succeeded. Biometric profile verification matched live sample with high probability.",
+      "createdAt": "2026-01-10T10:00:00Z"
+    },
+    {
+      "id": "proof-2",
+      "userId": "cit-2",
+      "documentType": "Voter ID",
+      "documentNumber": "TN/03/021/45921",
+      "fileName": "voter_scanned.png",
+      "extractedName": "Vignesh Kumar",
+      "extractedAddress": "82, Avinashi Road, Peelamedu, Coimbatore - 641004",
+      "faceMatchScore": 92.1,
+      "fraudDetected": false,
+      "reasoning": "Voter ID card scan matched. Address reversibility score is optimal.",
+      "createdAt": "2026-02-15T10:00:00Z"
+    }
+  ],
+  "complaints": [
+    {
+      "id": "CIV-COI-1001",
+      "reportNumber": "1001",
+      "userId": "cit-1",
+      "reporterName": "R. Prakash",
+      "title": "Continuous Underground Water Pipeline Leakage",
+      "description": "Continuous water leakage from underground pipeline near Gandhipuram bus stand causing road flooding and water wastage.",
+      "category": "Water Leakage",
+      "severity": "High",
+      "status": "Completed",
+      "zone": "Central Zone",
+      "beforeImg": "/images/water_before.jpg",
+      "afterImg": "/images/water_after.jpg",
+      "lat": 11.0183,
+      "lng": 76.9725,
+      "createdAt": "2026-06-22T14:21:46.473Z",
+      "assignedOfficerId": "off-1",
+      "assignedDepartmentId": "dept-1",
+      "delayProbability": 15,
+      "predictedDays": 0.75,
+      "predictedDeadline": "18 hours",
+      "aiConfidence": 96.5,
+      "aiReasoning": "Hydraulic pressure flow near major commercial hub detected via audio sensor telemetry and visual volume estimation.",
+      "isEscalatedToCommissioner": false,
+      "verificationsCount": 3,
+      "voters": [
+        "Vignesh Kumar",
+        "S. Karthikeyan",
+        "M. Revathi"
+      ],
+      "upvoters": [
+        "cit-1",
+        "cit-2"
+      ]
+    },
+    {
+      "id": "CIV-COI-1002",
+      "reportNumber": "1002",
+      "userId": "cit-2",
+      "reporterName": "Vignesh Kumar",
+      "title": "Large Pothole near PSG Tech Signal",
+      "description": "Large pothole near PSG Tech signal causing bike accidents during peak hours.",
+      "category": "Road Damage",
+      "severity": "Medium",
+      "status": "Completed",
+      "zone": "East Zone",
+      "beforeImg": "/images/road_before.jpg",
+      "lat": 11.0287,
+      "lng": 77.0024,
+      "createdAt": "2026-06-23T14:21:46.473Z",
+      "assignedOfficerId": "off-2",
+      "assignedDepartmentId": "dept-2",
+      "delayProbability": 25,
+      "predictedDays": 3,
+      "predictedDeadline": "3 days",
+      "aiConfidence": 94.2,
+      "aiReasoning": "Deep crater on a high-speed transit arterial. High traffic flow density elevates accident risk score.",
+      "isEscalatedToCommissioner": false,
+      "verificationsCount": 1,
+      "voters": [
+        "R. Prakash"
+      ],
+      "upvoters": [
+        "cit-2"
+      ],
+      "afterImg": "/images/road_after.jpg"
+    },
+    {
+      "id": "CIV-COI-1003",
+      "reportNumber": "1003",
+      "userId": "cit-1",
+      "reporterName": "R. Prakash",
+      "title": "Overflowing Garbage Bins on DB Road",
+      "description": "Garbage bins overflowing for 3 days causing foul smell and stray dog activity.",
+      "category": "Sanitation",
+      "severity": "High",
+      "status": "Pending",
+      "zone": "West Zone",
+      "beforeImg": "/images/garbage_before.jpg",
+      "lat": 11.0084,
+      "lng": 76.9512,
+      "createdAt": "2026-06-24T02:21:46.473Z",
+      "assignedDepartmentId": "dept-3",
+      "delayProbability": 12,
+      "predictedDays": 0.5,
+      "predictedDeadline": "12 hours",
+      "aiConfidence": 97.1,
+      "aiReasoning": "Solid waste accumulation in highly populated shopping zone triggers rapid public health vectors.",
+      "isEscalatedToCommissioner": false,
+      "verificationsCount": 0,
+      "voters": [],
+      "upvoters": []
+    }
+  ],
+  "complaint_verifications": [
+    {
+      "id": "v-1",
+      "complaintId": "CIV-COI-1001",
+      "userId": "cit-2",
+      "residentName": "Vignesh Kumar",
+      "distanceMeters": 45,
+      "antiFraudPassed": true,
+      "votedAt": "2026-06-22T22:21:46.473Z"
+    },
+    {
+      "id": "v-2",
+      "complaintId": "CIV-COI-1001",
+      "userId": "temp-1",
+      "residentName": "S. Karthikeyan",
+      "distanceMeters": 120,
+      "antiFraudPassed": true,
+      "votedAt": "2026-06-22T23:21:46.473Z"
+    },
+    {
+      "id": "v-3",
+      "complaintId": "CIV-COI-1001",
+      "userId": "temp-2",
+      "residentName": "M. Revathi",
+      "distanceMeters": 230,
+      "antiFraudPassed": true,
+      "votedAt": "2026-06-23T00:21:46.473Z"
+    },
+    {
+      "id": "v-4",
+      "complaintId": "CIV-COI-1002",
+      "userId": "cit-1",
+      "residentName": "R. Prakash",
+      "distanceMeters": 80,
+      "antiFraudPassed": true,
+      "votedAt": "2026-06-24T04:21:46.473Z"
+    }
+  ],
+  "officers": [
+    {
+      "id": "off-1",
+      "name": "M. Ganeshan",
+      "departmentId": "dept-1",
+      "email": "ganeshan.water@coimbatore.gov.in",
+      "phone": "+91 94432 00101",
+      "efficiencyScore": 94,
+      "avatarUrl": "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&q=80"
+    },
+    {
+      "id": "off-2",
+      "name": "K. Dakshinamurthy",
+      "departmentId": "dept-2",
+      "email": "dakshin.eng@coimbatore.gov.in",
+      "phone": "+91 94432 00102",
+      "efficiencyScore": 82,
+      "avatarUrl": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80"
+    },
+    {
+      "id": "off-3",
+      "name": "S. Narmadha",
+      "departmentId": "dept-3",
+      "email": "narmadha.san@coimbatore.gov.in",
+      "phone": "+91 94432 00103",
+      "efficiencyScore": 98,
+      "avatarUrl": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80"
+    },
+    {
+      "id": "off-4",
+      "name": "B. Ezhilarasan",
+      "departmentId": "dept-4",
+      "email": "ezhil.light@coimbatore.gov.in",
+      "phone": "+91 94432 00104",
+      "efficiencyScore": 89,
+      "avatarUrl": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=150&q=80"
+    },
+    {
+      "id": "off-5",
+      "name": "V. Shakthivel",
+      "departmentId": "dept-5",
+      "email": "shakthi.sewage@coimbatore.gov.in",
+      "phone": "+91 94432 00105",
+      "efficiencyScore": 81,
+      "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80"
+    }
+  ],
+  "departments": [
+    {
+      "id": "dept-1",
+      "name": "Water Board",
+      "code": "COI-WTB",
+      "zone": "Central Zone",
+      "slaCompliance": 92,
+      "totalCases": 24,
+      "solvedCases": 18,
+      "pendingCases": 5,
+      "delayedCases": 1,
+      "avgResolutionDays": 1.2
+    },
+    {
+      "id": "dept-2",
+      "name": "Municipal Engineering",
+      "code": "COI-ENG",
+      "zone": "East Zone",
+      "slaCompliance": 72,
+      "totalCases": 18,
+      "solvedCases": 13,
+      "pendingCases": 3,
+      "delayedCases": 2,
+      "avgResolutionDays": 3.5
+    },
+    {
+      "id": "dept-3",
+      "name": "Sanitation Dept",
+      "code": "COI-SAN",
+      "zone": "West Zone",
+      "slaCompliance": 96,
+      "totalCases": 32,
+      "solvedCases": 28,
+      "pendingCases": 3,
+      "delayedCases": 1,
+      "avgResolutionDays": 0.6
+    },
+    {
+      "id": "dept-4",
+      "name": "Streetlight Operations",
+      "code": "COI-SLO",
+      "zone": "North Zone",
+      "slaCompliance": 90,
+      "totalCases": 15,
+      "solvedCases": 11,
+      "pendingCases": 3,
+      "delayedCases": 1,
+      "avgResolutionDays": 1.8
+    },
+    {
+      "id": "dept-5",
+      "name": "Sewage Operations",
+      "code": "COI-SWG",
+      "zone": "South Zone",
+      "slaCompliance": 78,
+      "totalCases": 12,
+      "solvedCases": 8,
+      "pendingCases": 3,
+      "delayedCases": 1,
+      "avgResolutionDays": 2.1
+    }
+  ],
+  "escalations": [],
+  "completion_images": [
+    {
+      "id": "ci-1",
+      "complaintId": "CIV-COI-1001",
+      "imageUrl": "/images/water_after.jpg",
+      "remarks": "Water pipeline leakage successfully repaired and sealed with heavy-duty concrete collar sleeve. Water flow restored with normal pressure.",
+      "officerId": "off-1",
+      "completedAt": "2026-06-23T14:21:46.473Z"
+    },
+    {
+      "id": "ci-1782311890661",
+      "complaintId": "CIV-COI-1002",
+      "imageUrl": "/images/road_after.jpg",
+      "remarks": "Water pipeline sealed. Flow rate checked and normal pressure restored. verified on-site.",
+      "officerId": "usr-off-1",
+      "completedAt": "2026-06-24T14:38:10.661Z"
+    }
+  ]
+}

@@ -1,7 +1,20 @@
 import React, { useState } from 'react';
-import { Camera, CheckCircle2, AlertTriangle, RefreshCw, Map, ShieldAlert, Wifi } from 'lucide-react';
+import { Camera, CheckCircle2, AlertTriangle, RefreshCw, Map as MapIcon, ShieldAlert, Wifi } from 'lucide-react';
 import { ExifMetadata } from '../types';
 import ExifReader from 'exifreader';
+import { APIProvider, Map, AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
+
+const RAW_KEY =
+  process.env.GOOGLE_MAPS_PLATFORM_KEY ||
+  process.env.GOOGLE_MAPS_API_KEY ||
+  (import.meta as any).env?.VITE_GOOGLE_MAPS_PLATFORM_KEY ||
+  (import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY ||
+  (globalThis as any).GOOGLE_MAPS_PLATFORM_KEY ||
+  (globalThis as any).GOOGLE_MAPS_API_KEY ||
+  '';
+
+const API_KEY = RAW_KEY.trim().replace(/^["'`]|["'`]$/g, '');
+const hasValidKey = Boolean(API_KEY) && API_KEY.startsWith('AIzaSy');
 
 interface EvidenceCaptureCardProps {
   onCaptureCompleted: (imgUrl: string, exif: ExifMetadata) => void;
@@ -24,38 +37,38 @@ export const EvidenceCaptureCard: React.FC<EvidenceCaptureCardProps> = ({ onCapt
     setValidationResult(null);
     setCameraLog([]);
 
-    let img = "https://images.unsplash.com/photo-1542013936693-859e53936323?auto=format&fit=crop&w=400&q=80"; // Water
+    let img = "/images/water_before.jpg"; // Water
     let lat = 11.0183;
     let lng = 76.9725;
 
     if (scenario === 'gandhipuram') {
-      img = "https://images.unsplash.com/photo-1542013936693-859e53936323?auto=format&fit=crop&w=400&q=80";
+      img = "/images/water_before.jpg";
       lat = 11.0183; lng = 76.9725;
       setCustomLat('11.0183'); setCustomLng('76.9725');
     } else if (scenario === 'peelamedu') {
-      img = "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=400&q=80";
+      img = "/images/road_before.jpg";
       lat = 11.0287; lng = 77.0024;
       setCustomLat('11.0287'); setCustomLng('77.0024');
     } else if (scenario === 'rspuram') {
-      img = "https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&w=400&q=80";
+      img = "/images/garbage_before.jpg";
       lat = 11.0084; lng = 76.9512;
       setCustomLat('11.0084'); setCustomLng('76.9512');
     } else if (scenario === 'thudiyalur') {
-      img = "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?auto=format&fit=crop&w=400&q=80";
+      img = "/images/streetlight_before.jpg";
       lat = 11.0812; lng = 76.9416;
       setCustomLat('11.0812'); setCustomLng('76.9416');
     } else if (scenario === 'podanur') {
-      img = "https://images.unsplash.com/photo-1584824486509-112e4181ff6b?auto=format&fit=crop&w=400&q=80";
+      img = "/images/sewage_before.jpg";
       lat = 10.9758; lng = 76.9624;
       setCustomLat('10.9758'); setCustomLng('76.9624');
     } else if (scenario === 'invalid_gps') {
-      img = "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=400&q=80";
+      img = "/images/road_damage_before.jpg";
       lat = 13.0827; lng = 80.2707; // Chennai coordinates (out of bounds)
       setCustomLat('13.0827'); setCustomLng('80.2707');
     } else if (scenario === 'manual') {
       lat = parseFloat(customLat) || 11.0183;
       lng = parseFloat(customLng) || 76.9725;
-      img = customImgData || capturedImg || "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=400&q=80";
+      img = customImgData || capturedImg || "/images/road_before.jpg";
     }
 
     setCapturedImg(img);
@@ -123,16 +136,16 @@ export const EvidenceCaptureCard: React.FC<EvidenceCaptureCardProps> = ({ onCapt
     // Choose image based on category
     let img = capturedImg;
     if (!img) {
-      img = "https://images.unsplash.com/photo-1542013936693-859e53936323?auto=format&fit=crop&w=400&q=80"; // default water
+      img = "/images/water_before.jpg"; // default water
       const catLower = selectedCategory.toLowerCase();
       if (catLower.includes('road')) {
-        img = "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=400&q=80";
+        img = "/images/road_before.jpg";
       } else if (catLower.includes('sanitation') || catLower.includes('garbage')) {
-        img = "https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&w=400&q=80";
+        img = "/images/garbage_before.jpg";
       } else if (catLower.includes('light')) {
-        img = "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?auto=format&fit=crop&w=400&q=80";
+        img = "/images/streetlight_before.jpg";
       } else if (catLower.includes('sewage')) {
-        img = "https://images.unsplash.com/photo-1584824486509-112e4181ff6b?auto=format&fit=crop&w=400&q=80";
+        img = "/images/sewage_before.jpg";
       }
     }
 
@@ -469,6 +482,55 @@ export const EvidenceCaptureCard: React.FC<EvidenceCaptureCardProps> = ({ onCapt
           </div>
         </div>
       )}
+
+      {/* Interactive Map Preview */}
+      <div className="border-t border-zinc-900 pt-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider flex items-center gap-1.5">
+            <MapIcon className="w-3.5 h-3.5 text-indigo-400" /> Interactive Geotag Map Preview
+          </label>
+          <span className="text-[9px] font-mono text-zinc-500 bg-zinc-950 px-2 py-0.5 rounded">
+            Coimbatore Limits Audited
+          </span>
+        </div>
+
+        {hasValidKey ? (
+          <APIProvider apiKey={API_KEY} version="weekly">
+            <div className="rounded-xl overflow-hidden border border-zinc-800 bg-[#08080a] h-[220px] relative">
+              <Map
+                center={{ lat: validationResult ? validationResult.latitude : (parseFloat(customLat) || 11.0183), lng: validationResult ? validationResult.longitude : (parseFloat(customLng) || 76.9725) }}
+                zoom={15}
+                mapId="DEMO_MAP_ID"
+                internalUsageAttributionIds={['gmp_mcp_codeassist_v1_aistudio']}
+                style={{ width: '100%', height: '100%' }}
+                disableDefaultUI={true}
+                zoomControl={true}
+              >
+                <AdvancedMarker position={{ lat: validationResult ? validationResult.latitude : (parseFloat(customLat) || 11.0183), lng: validationResult ? validationResult.longitude : (parseFloat(customLng) || 76.9725) }}>
+                  <Pin background="#6366f1" glyphColor="#fff" />
+                </AdvancedMarker>
+              </Map>
+            </div>
+          </APIProvider>
+        ) : (
+          <div className="space-y-3">
+            {/* Embedded Iframe Fallback Map */}
+            <div className="rounded-xl overflow-hidden border border-zinc-850 bg-[#08080a] h-[160px] relative">
+              <iframe
+                title="Geotag Map Preview"
+                width="100%"
+                height="100%"
+                frameBorder="0"
+                scrolling="no"
+                marginHeight={0}
+                marginWidth={0}
+                src={`https://maps.google.com/maps?q=${validationResult ? validationResult.latitude : (parseFloat(customLat) || 11.0183)},${validationResult ? validationResult.longitude : (parseFloat(customLng) || 76.9725)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                className="filter invert-[90%] hue-rotate-180 contrast-125 opacity-80"
+              ></iframe>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

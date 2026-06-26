@@ -53,7 +53,7 @@ export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({ beforeImg,
 
       <div
         ref={containerRef}
-        className="relative h-[250px] w-full rounded-xl overflow-hidden border border-zinc-800 select-none cursor-ew-resize bg-[#0c0c0e]"
+        className="relative h-[240px] w-full rounded-xl overflow-hidden border border-zinc-800 select-none cursor-ew-resize bg-[#0c0c0e]"
         onMouseDown={handleMouseDown}
         onMouseUp={() => setIsDragging(false)}
         onMouseLeave={() => setIsDragging(false)}

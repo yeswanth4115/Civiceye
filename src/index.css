@@ -6,7 +6,307 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
-/* Custom visual command center tweaks */
+:root {
+  --bg-primary: #f8fafc;
+  --bg-card: #ffffff;
+  --border-color: #cbd5e1;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --primary-action: #0f4f3a;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --danger-color: #ef4444;
+
+  --font-scale: 1;
+  --button-padding-x: 1rem;
+  --button-padding-y: 0.5rem;
+  --spacing-scale: 1;
+  --line-height-scale: 1.5;
+  --focus-ring: 2px solid transparent;
+}
+
+/* Centralized Dark High-Contrast Accessibility Theme Variables */
+:root.is-accessible {
+  --bg-primary: #121212;
+  --bg-card: #1E1E1E;
+  --border-color: #2C2C2C;
+  --text-primary: #FFFFFF;
+  --text-secondary: #B0B0B0;
+  --primary-action: #2563EB;
+  --success-color: #10B981;
+  --warning-color: #F59E0B;
+  --danger-color: #EF4444;
+
+  --font-scale: 1.20; /* 20% increase */
+  --button-padding-x: 1.25rem;
+  --button-padding-y: 0.75rem;
+  --spacing-scale: 1.20; /* spacing increase */
+  --line-height-scale: 1.8;
+  --focus-ring: 3px solid #2563EB;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  color: #0f172a;
+}
+
+/* Dynamic global theme adjustments when Accessibility Mode is ON */
+.is-accessible {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+.is-accessible body {
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Target and enforce uniform background + text colors across ALL layouts */
+.is-accessible nav,
+.is-accessible header,
+.is-accessible footer,
+.is-accessible aside,
+.is-accessible section,
+.is-accessible div.bg-white,
+.is-accessible div.bg-slate-50,
+.is-accessible div.bg-slate-100,
+.is-accessible div.bg-slate-200,
+.is-accessible div.bg-zinc-50,
+.is-accessible div.bg-zinc-100,
+.is-accessible div.bg-zinc-200,
+.is-accessible div.bg-emerald-50,
+.is-accessible div.bg-indigo-50,
+.is-accessible div.bg-rose-50,
+.is-accessible div.bg-amber-50,
+.is-accessible div.bg-neutral-50,
+.is-accessible div.bg-neutral-100,
+.is-accessible div.bg-gray-50,
+.is-accessible div.bg-gray-100 {
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Global text color overrides for accessibility mode */
+.is-accessible p,
+.is-accessible h1,
+.is-accessible h2,
+.is-accessible h3,
+.is-accessible h4,
+.is-accessible h5,
+.is-accessible h6,
+.is-accessible label,
+.is-accessible td,
+.is-accessible th,
+.is-accessible span:not(.no-acc-override) {
+  color: var(--text-primary) !important;
+  line-height: var(--line-height-scale) !important;
+}
+
+/* Secondary text elements */
+.is-accessible .text-slate-500,
+.is-accessible .text-slate-600,
+.is-accessible .text-zinc-500,
+.is-accessible .text-zinc-400,
+.is-accessible .text-gray-500,
+.is-accessible .text-gray-400,
+.is-accessible .text-slate-400,
+.is-accessible .text-slate-300 {
+  color: var(--text-secondary) !important;
+}
+
+/* Borders mapping */
+.is-accessible .border,
+.is-accessible .border-slate-100,
+.is-accessible .border-slate-200,
+.is-accessible .border-slate-300,
+.is-accessible .border-gray-200,
+.is-accessible .border-zinc-200,
+.is-accessible .border-zinc-800 {
+  border-color: var(--border-color) !important;
+}
+
+/* Enhance form elements & buttons for screen contrast and ease of use */
+.is-accessible input,
+.is-accessible textarea,
+.is-accessible select {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  border: 2px solid var(--border-color) !important;
+  border-radius: 0.5rem !important;
+  padding: 0.75rem 1rem !important;
+}
+
+.is-accessible input::placeholder,
+.is-accessible textarea::placeholder {
+  color: var(--text-secondary) !important;
+}
+
+/* Outlines for focused items */
+.is-accessible button:focus,
+.is-accessible input:focus,
+.is-accessible textarea:focus,
+.is-accessible select:focus,
+.is-accessible a:focus {
+  outline: var(--focus-ring) !important;
+  outline-offset: 3px !important;
+}
+
+/* Font Size Scaling */
+.is-accessible,
+.is-accessible p,
+.is-accessible span,
+.is-accessible div,
+.is-accessible table,
+.is-accessible input,
+.is-accessible textarea,
+.is-accessible select {
+  font-size: calc(1rem * var(--font-scale)) !important;
+}
+
+.is-accessible h1 {
+  font-size: calc(1.875rem * var(--font-scale)) !important;
+}
+
+.is-accessible h2 {
+  font-size: calc(1.5rem * var(--font-scale)) !important;
+}
+
+.is-accessible h3 {
+  font-size: calc(1.25rem * var(--font-scale)) !important;
+}
+
+/* Button & Action Overrides */
+.is-accessible button:not(.no-acc-override) {
+  padding-left: var(--button-padding-x) !important;
+  padding-right: var(--button-padding-x) !important;
+  padding-top: var(--button-padding-y) !important;
+  padding-bottom: var(--button-padding-y) !important;
+  border-radius: 0.75rem !important;
+  background-color: var(--bg-card) !important;
+  border: 2px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Primary buttons style in Accessibility mode */
+.is-accessible .bg-emerald-600,
+.is-accessible .bg-emerald-700,
+.is-accessible .bg-emerald-800,
+.is-accessible .bg-[#0f4f3a],
+.is-accessible .bg-[#125d45],
+.is-accessible .bg-blue-600,
+.is-accessible .bg-indigo-600,
+.is-accessible button[type="submit"] {
+  background-color: var(--primary-action) !important;
+  border-color: var(--primary-action) !important;
+  color: #FFFFFF !important;
+}
+
+/* Hover for primary buttons */
+.is-accessible .bg-emerald-600:hover,
+.is-accessible .bg-[#0f4f3a]:hover,
+.is-accessible .bg-blue-600:hover,
+.is-accessible button[type="submit"]:hover {
+  background-color: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+}
+
+/* Success status pills/labels */
+.is-accessible .text-emerald-500,
+.is-accessible .text-emerald-600,
+.is-accessible .text-green-500,
+.is-accessible .text-emerald-400 {
+  color: var(--success-color) !important;
+}
+
+.is-accessible .bg-emerald-100,
+.is-accessible .bg-emerald-50,
+.is-accessible .bg-green-100 {
+  background-color: rgba(16, 185, 129, 0.2) !important;
+  border: 1px solid var(--success-color) !important;
+  color: var(--success-color) !important;
+}
+
+/* Warning status pills/labels */
+.is-accessible .text-amber-500,
+.is-accessible .text-amber-600,
+.is-accessible .text-orange-500 {
+  color: var(--warning-color) !important;
+}
+
+.is-accessible .bg-amber-100,
+.is-accessible .bg-orange-100 {
+  background-color: rgba(245, 158, 11, 0.2) !important;
+  border: 1px solid var(--warning-color) !important;
+  color: var(--warning-color) !important;
+}
+
+/* Danger/Critical status pills/labels */
+.is-accessible .text-rose-500,
+.is-accessible .text-rose-600,
+.is-accessible .text-red-500,
+.is-accessible .text-red-600 {
+  color: var(--danger-color) !important;
+}
+
+.is-accessible .bg-rose-100,
+.is-accessible .bg-red-100,
+.is-accessible .bg-rose-50 {
+  background-color: rgba(239, 68, 68, 0.2) !important;
+  border: 1px solid var(--danger-color) !important;
+  color: var(--danger-color) !important;
+}
+
+/* Modal Windows and Popups */
+.is-accessible .fixed,
+.is-accessible .absolute.z-50,
+.is-accessible .modal-container {
+  background-color: var(--bg-card) !important;
+  border: 3px solid var(--border-color) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75) !important;
+}
+
+/* Chatbot container special overrides */
+.is-accessible .chat-window {
+  background-color: var(--bg-card) !important;
+  border: 3px solid var(--border-color) !important;
+}
+
+/* Spacing and lists overrides */
+.is-accessible .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: calc(1rem * var(--spacing-scale)) !important;
+}
+
+.is-accessible .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: calc(1.5rem * var(--spacing-scale)) !important;
+}
+
+.is-accessible .gap-4 {
+  gap: calc(1rem * var(--spacing-scale)) !important;
+}
+
+.is-accessible .gap-6 {
+  gap: calc(1.5rem * var(--spacing-scale)) !important;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
 .scrollbar-thin::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -15,14 +315,13 @@
   background: transparent;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: #cbd5e1;
   border-radius: 99px;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: #94a3b8;
 }
 
-/* Hide scrollbars but keep functionality */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -30,3 +329,4 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+

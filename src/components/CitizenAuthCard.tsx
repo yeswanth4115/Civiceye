@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ShieldCheck, UserCheck, AlertTriangle, Fingerprint, UploadCloud, MapPin, Sparkles, User, FileText } from 'lucide-react';
 import { VerifiedCitizen } from '../types';
+import Tesseract from 'tesseract.js';
 
 interface CitizenAuthCardProps {
   currentCitizen: VerifiedCitizen | null;
@@ -16,6 +17,67 @@ export const CitizenAuthCard: React.FC<CitizenAuthCardProps> = ({ currentCitizen
   const [isProcessing, setIsProcessing] = useState(false);
   const [ocrLogs, setOcrLogs] = useState<string[]>([]);
   const [uploadMockFile, setUploadMockFile] = useState<string | null>(null);
+
+  const runRealOCR = async (file: File) => {
+    setIsProcessing(true);
+    setOcrLogs(["🔄 Initializing Tesseract.js (eng+tam)..."]);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const base64 = event.target?.result as string;
+        setOcrLogs((prev) => [...prev, "📖 Processing Tamil & English language packs..."]);
+        
+        const result = await Tesseract.recognize(
+          base64,
+          'eng+tam',
+          { logger: m => {
+            if (m.status === 'recognizing') {
+              setOcrLogs((prev) => {
+                const filtered = prev.filter(p => !p.startsWith('⏳'));
+                return [...filtered, `⏳ Recognizing: ${Math.round(m.progress * 100)}%` + (m.status ? ` (${m.status})` : '')];
+              });
+            }
+          }}
+        );
+
+        const text = result.data.text;
+        setOcrLogs((prev) => [
+          ...prev,
+          "✅ OCR Analysis complete!",
+          `📝 Raw Text Extracted: "${text.slice(0, 120)}..."`
+        ]);
+
+        // Smart regex extraction for Tamil & English
+        let nameMatch = text.match(/(?:Name|பெயர்|பெயா)\s*[:\-\s]\s*([^\n]+)/i);
+        let idMatch = text.match(/\d{4}\s\d{4}\s\d{4}/) || text.match(/\d{12}/) || text.match(/[A-Z]{2,3}\/\d+\/\d+/) || text.match(/TAX-\d+-[A-Z0-9]+/i);
+        let addrMatch = text.match(/(?:Address|இருப்பிடம்|முகவரி)\s*[:\-\s]\s*([^\n]+)/i) || text.match(/(?:Avinashi|Sathy|Podanur|Gandhipuram|Peelamedu|Saibaba)[^\n]*/i);
+
+        if (nameMatch && nameMatch[1]) {
+          setCitizenName(nameMatch[1].trim());
+        } else {
+          // Fallback guess from lines
+          const validLines = text.split('\n').map(l => l.trim()).filter(l => l.length > 5 && !l.includes('No') && !l.includes('No') && !l.toLowerCase().includes('government'));
+          if (validLines.length > 0) setCitizenName(validLines[0]);
+        }
+
+        if (idMatch) {
+          setIdNumber(idMatch[0].trim());
+        }
+
+        if (addrMatch) {
+          setTextAddress(addrMatch[0].trim());
+        } else {
+          setTextAddress("Coimbatore City, Tamil Nadu");
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (err: any) {
+      console.error(err);
+      setOcrLogs((prev) => [...prev, `⚠️ Error: ${err.message || err}. Pre-filling demo data.`]);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleMockOnboard = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -211,6 +273,7 @@ export const CitizenAuthCard: React.FC<CitizenAuthCardProps> = ({ currentCitizen
                     const file = e.target.files?.[0];
                     if (file) {
                       setUploadMockFile(file.name);
+                      void runRealOCR(file);
                     }
                   }}
                 />

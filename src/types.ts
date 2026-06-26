@@ -7,15 +7,19 @@ export type IssueCategory =
   | "Streetlight" 
   | "Public Safety" 
   | "Parks & Trees"
-  | "Sewage Overflow";
+  | "Sewage Overflow"
+  | "Garbage Overflow"
+  | "Streetlight Failure";
 
 export type IssueStatus = 
   | "Intake"
   | "Authenticating"
   | "Prioritized" 
   | "Assigned" 
-  | "In Progress" 
-  | "Resolved" 
+  | "In Progress"
+  | "Pending"
+  | "Resolved"
+  | "Completed"
   | "Verified" 
   | "Escalated";
 
@@ -36,13 +40,24 @@ export interface VerifiedCitizen {
   name: string;
   idType: "Aadhaar" | "Voter ID" | "Utility Bill" | "Property Tax Receipt";
   idNumberMasked: string;
-  ocrExtractedAddress: string;
+  ocrExtractedAddress?: string;
+  address?: string;
   assignedGeozone: string; // e.g. "Central Zone", "East Zone", "West Zone", "North Zone", "South Zone"
   isFraudDetected: boolean;
   fraudAnalysisReasoning?: string;
   faceMatchScore: number; // 0-100
   isVerified: boolean;
   avatarUrl?: string;
+  role?: "citizen" | "officer" | "admin";
+  trustScore?: number;
+  landmark?: string;
+  pincode?: string;
+  locationVerified?: boolean;
+  locationConfidence?: number;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 export interface ResidentVerification {
@@ -50,6 +65,8 @@ export interface ResidentVerification {
   votedAt: string;
   distanceMeters: number;
   antiFraudPassed: boolean;
+  integrityScore?: number;
+  verificationMethod?: string;
 }
 
 export interface EmailLog {
@@ -68,6 +85,7 @@ export interface CivicIssue {
   id: string; // e.g. CIV-COI-1001
   reportNumber: string;
   reporterName: string;
+  userId?: string;
   title: string;
   description: string;
   location: string;
@@ -102,6 +120,34 @@ export interface CivicIssue {
   escalationReportSentAt?: string;
   voters?: string[]; // array of citizen names or uids who have voted/verified proximity on this issue
   upvoters?: string[]; // array of citizen names or uids who have upvoted/liked this issue
+
+  // Conformed Core Complaint structure fields:
+  area?: string;
+  citizenName?: string;
+  citizenId?: string;
+  officerName?: string;
+  urgency?: string;
+  beforeImage?: string;
+  afterImage?: string;
+  remarks?: string;
+  comments?: Array<{
+    id: string;
+    userId: string;
+    userName: string;
+    userRole: string;
+    text: string;
+    createdAt: string;
+  }>;
+  ratings?: number[];
+  reviews?: Array<{
+    userId: string;
+    userName: string;
+    rating: number;
+    text: string;
+    createdAt: string;
+  }>;
+  createdAt?: string;
+  completedAt?: string;
 }
 
 export interface DepartmentMetric {

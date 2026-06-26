@@ -1,4 +1,4 @@
-import { CivicIssue, DepartmentMetric, VerifiedCitizen } from "./types";
+import { CivicIssue, DepartmentMetric, VerifiedCitizen, SeverityLevel, IssueStatus } from "./types";
 
 // Coimbatore Specific Zone mapping and officials
 export const COIMBATORE_ZONES = [
@@ -72,324 +72,454 @@ export const MOCKED_CITIZENS: VerifiedCitizen[] = [
   }
 ];
 
-export const INITIAL_ISSUES: CivicIssue[] = [
-  {
-    id: "CIV-COI-1001",
-    reportNumber: "1001",
-    reporterName: "R. Prakash",
-    title: "Continuous Underground Water Pipeline Leakage",
-    description: "Continuous water leakage from underground pipeline near Gandhipuram bus stand causing road flooding and water wastage.",
-    location: "14, Sathy Road, Gandhipuram, Coimbatore",
-    zone: "Central Zone",
-    category: "Water Leakage",
-    severity: "High",
-    status: "Verified",
-    department: "Water Board",
-    predictedDeadline: "18 hours",
-    predictedDays: 0.75,
-    timeElapsedDays: 0.6,
-    aiConfidence: 96.5,
-    reasoning: "Hydraulic pressure flow near major commercial hub detected via audio sensor telemetry and visual volume estimation.",
-    createdAtText: "1h ago",
-    upvotes: 42,
-    citizenVerified: true,
-    assignedOfficer: "M. Ganeshan",
-    localSupervisor: "Yogachithra",
-    delayProbability: 15,
-    beforeImg: "/images/water_before.jpg",
-    afterImg: "/images/water_after.jpg",
-    geotag: { lat: 11.0183, lng: 76.9725 },
-    exifData: {
-      latitude: 11.0183,
-      longitude: 76.9725,
-      timestamp: "2026-06-23T18:15:00Z",
-      deviceId: "DEV-IPH-8821B",
-      imageFreshnessScore: 98,
-      locationPlausibilityScore: 100,
-      manipulationCheckScore: 96,
-      isAuthentic: true
-    },
-    verifications: [
-      { name: "S. Karthikeyan", votedAt: "2026-06-23T18:30:00Z", distanceMeters: 45, antiFraudPassed: true },
-      { name: "M. Revathi", votedAt: "2026-06-23T18:35:00Z", distanceMeters: 120, antiFraudPassed: true },
-      { name: "P. Balaji", votedAt: "2026-06-23T18:42:00Z", distanceMeters: 230, antiFraudPassed: true }
-    ],
-    emailDispatched: true,
-    isEscalatedToCommissioner: false,
-    emails: [
-      {
-        id: "em-1001-a",
-        issueId: "CIV-COI-1001",
-        toEmail: "m.ganeshan.water@coimbatore.gov.in",
-        toRole: "Department Head",
-        recipientName: "M. Ganeshan",
-        subject: "[URGENT] Water Leakage Escalation - CIV-COI-1001 (Gandhipuram)",
-        body: "Respected Sir,\n\nA high-severity Water Leakage issue (CIV-COI-1001) has reached community consensus of 3 verified residents in Gandhipuram, Sathy Road.\n\nIssue Details:\n- ID: CIV-COI-1001\n- Reporter: R. Prakash\n- Location: 14, Sathy Road, Gandhipuram, Coimbatore (Geotag: 11.0183, 76.9725)\n- Description: Continuous water leakage from underground pipeline near Gandhipuram bus stand causing road flooding and water wastage.\n- Target SLA Deadline: 18 hours\n- Area Supervisor Assigned: Yogachithra\n\nPlease dispatch the rapid repair crew immediately to prevent further potable water loss.\n\nRegards,\nCIVICEYE Automated Intelligence",
-        sentAt: "2026-06-23T18:43:00Z",
-        status: "sent"
-      },
-      {
-        id: "em-1001-b",
-        issueId: "CIV-COI-1001",
-        toEmail: "yogachithra.gandhipuram@coimbatore.gov.in",
-        toRole: "Local Supervisor",
-        recipientName: "Yogachithra",
-        subject: "[TASK ASSIGNED] Sathy Road Pipeline Repair - CIV-COI-1001",
-        body: "Hi Yogachithra,\n\nYou have been assigned as the local supervisor for resolving issue CIV-COI-1001.\nLocation: 14, Sathy Road, Gandhipuram.\nPlease coordinate with crew lead and upload completion image for citizen verification within the 18 hours SLA.\n\nCIVICEYE Control Center",
-        sentAt: "2026-06-23T18:43:00Z",
-        status: "sent"
-      }
-    ]
-  },
-  {
-    id: "CIV-COI-1002",
-    reportNumber: "1002",
-    reporterName: "Vignesh Kumar",
-    title: "Large Pothole near PSG Tech Signal",
-    description: "Large pothole near PSG Tech signal causing bike accidents during peak hours.",
-    location: "Avinashi Road, Peelamedu, Coimbatore",
-    zone: "East Zone",
-    category: "Road Damage",
-    severity: "Medium",
-    status: "Assigned",
-    department: "Municipal Engineering",
-    predictedDeadline: "3 days",
-    predictedDays: 3.0,
-    timeElapsedDays: 0.5,
-    aiConfidence: 94.2,
-    reasoning: "Deep crater on a high-speed transit arterial. High traffic flow density elevates accident risk score.",
-    createdAtText: "12h ago",
-    upvotes: 28,
-    citizenVerified: false,
-    assignedOfficer: "K. Dakshinamurthy",
-    localSupervisor: "Ezhil",
-    delayProbability: 25,
-    beforeImg: "/images/road_before.jpg",
-    afterImg: "/images/road_after.jpg",
-    geotag: { lat: 11.0287, lng: 77.0024 },
-    exifData: {
-      latitude: 11.0287,
-      longitude: 77.0024,
-      timestamp: "2026-06-23T07:20:00Z",
-      deviceId: "DEV-ONEPLUS-9T",
-      imageFreshnessScore: 96,
-      locationPlausibilityScore: 100,
-      manipulationCheckScore: 98,
-      isAuthentic: true
-    },
-    verifications: [
-      { name: "Nivetha R", votedAt: "2026-06-23T08:10:00Z", distanceMeters: 60, antiFraudPassed: true },
-      { name: "Hari Prasath", votedAt: "2026-06-23T08:45:00Z", distanceMeters: 140, antiFraudPassed: true },
-      { name: "K. Dinesh", votedAt: "2026-06-23T09:15:00Z", distanceMeters: 80, antiFraudPassed: true }
-    ],
-    emailDispatched: true,
-    isEscalatedToCommissioner: false,
-    emails: [
-      {
-        id: "em-1002-a",
-        issueId: "CIV-COI-1002",
-        toEmail: "k.dakshinamurthy.east@coimbatore.gov.in",
-        toRole: "Department Head",
-        recipientName: "K. Dakshinamurthy",
-        subject: "[REPAIR NOTIFICATION] Road Damage at Avinashi Road - CIV-COI-1002",
-        body: "Respected Sir,\n\nA verified road damage complaint (CIV-COI-1002) near PSG Tech signal has been escalated after gaining 3 resident confirmations.\n\nSLA Deadline: 3 days.\nField Supervisor: Ezhil.\n\nRegards,\nCIVICEYE System",
-        sentAt: "2026-06-23T09:16:00Z",
-        status: "sent"
-      }
-    ]
-  },
-  {
-    id: "CIV-COI-1003",
-    reportNumber: "1003",
-    reporterName: "K. Meenakshi",
-    title: "Overflowing Garbage Bins on DB Road",
-    description: "Garbage bins overflowing for 3 days causing foul smell and stray dog activity.",
-    location: "DB Road, RS Puram, Coimbatore",
-    zone: "West Zone",
-    category: "Sanitation",
-    severity: "High",
-    status: "In Progress",
-    department: "Sanitation Dept",
-    predictedDeadline: "12 hours",
-    predictedDays: 0.5,
-    timeElapsedDays: 0.3,
-    aiConfidence: 97.1,
-    reasoning: "Solid waste accumulation in highly populated shopping zone triggers rapid public health vectors.",
-    createdAtText: "18h ago",
-    upvotes: 56,
-    citizenVerified: false,
-    assignedOfficer: "S. Narmadha",
-    localSupervisor: "C. Veeran",
-    delayProbability: 12,
-    beforeImg: "/images/garbage_before.jpg",
-    afterImg: "/images/garbage_after.jpg",
-    geotag: { lat: 11.0084, lng: 76.9512 },
-    exifData: {
-      latitude: 11.0084,
-      longitude: 76.9512,
-      timestamp: "2026-06-23T01:10:00Z",
-      deviceId: "DEV-SAMS-S22",
-      imageFreshnessScore: 92,
-      locationPlausibilityScore: 100,
-      manipulationCheckScore: 94,
-      isAuthentic: true
-    },
-    verifications: [
-      { name: "T. Suresh", votedAt: "2026-06-23T02:00:00Z", distanceMeters: 30, antiFraudPassed: true },
-      { name: "Priya Narayanan", votedAt: "2026-06-23T02:15:00Z", distanceMeters: 55, antiFraudPassed: true },
-      { name: "Gokul Raj", votedAt: "2026-06-23T02:30:00Z", distanceMeters: 190, antiFraudPassed: true }
-    ],
-    emailDispatched: true,
-    isEscalatedToCommissioner: false,
-    emails: [
-      {
-        id: "em-1003-a",
-        issueId: "CIV-COI-1003",
-        toEmail: "s.narmadha.san@coimbatore.gov.in",
-        toRole: "Department Head",
-        recipientName: "S. Narmadha",
-        subject: "[IMMEDIATE ACTION] Sanitation Overflow - CIV-COI-1003 (DB Road)",
-        body: "Respected Officer,\n\nGarbage overflow at DB Road RS Puram has crossed 3 resident confirmations. Stray dog hazard reported.\n\nSLA Deadline: 12 hours.\nSupervisor: C. Veeran.\n\nRegards,\nCIVICEYE",
-        sentAt: "2026-06-23T02:31:00Z",
-        status: "sent"
-      }
-    ]
-  },
-  {
-    id: "CIV-COI-1004",
-    reportNumber: "1004",
-    reporterName: "Arun Kumar",
-    title: "Five Consecutive Streetlight Failures",
-    description: "Five consecutive streetlights not functioning, creating safety concerns at night.",
-    location: "Thudiyalur Main Road, Coimbatore",
-    zone: "North Zone",
-    category: "Streetlight",
-    severity: "Medium",
-    status: "Assigned",
-    department: "Electricity Board",
-    predictedDeadline: "24 hours",
-    predictedDays: 1.0,
-    timeElapsedDays: 0.1,
-    aiConfidence: 91.8,
-    reasoning: "Dark street segments correlated with night crime maps flags safety concerns on residential corridor.",
-    createdAtText: "2h ago",
-    upvotes: 18,
-    citizenVerified: false,
-    assignedOfficer: "S.N. Shanmugam",
-    localSupervisor: "Savitha",
-    delayProbability: 18,
-    beforeImg: "/images/streetlight_before.jpg",
-    afterImg: "/images/streetlight_after.jpg",
-    geotag: { lat: 11.0812, lng: 76.9416 },
-    exifData: {
-      latitude: 11.0812,
-      longitude: 76.9416,
-      timestamp: "2026-06-23T17:10:00Z",
-      deviceId: "DEV-VIVO-V21",
-      imageFreshnessScore: 99,
-      locationPlausibilityScore: 100,
-      manipulationCheckScore: 97,
-      isAuthentic: true
-    },
-    verifications: [
-      { name: "K. Janani", votedAt: "2026-06-23T17:40:00Z", distanceMeters: 95, antiFraudPassed: true },
-      { name: "M. Saravanan", votedAt: "2026-06-23T17:50:00Z", distanceMeters: 150, antiFraudPassed: true },
-      { name: "Bhuvana S", votedAt: "2026-06-23T18:05:00Z", distanceMeters: 280, antiFraudPassed: true }
-    ],
-    emailDispatched: true,
-    isEscalatedToCommissioner: false,
-    emails: [
-      {
-        id: "em-1004-a",
-        issueId: "CIV-COI-1004",
-        toEmail: "s.n.shanmugam.north@coimbatore.gov.in",
-        toRole: "Department Head",
-        recipientName: "S.N. Shanmugam",
-        subject: "[TICKET] Streetlight Failure Thudiyalur - CIV-COI-1004",
-        body: "Dear Sir,\n\nFive streetlights are out on Thudiyalur Main Road, creating a blind spot. Consensus achieved.\n\nSLA Deadline: 24 hours.\nSupervisor: Savitha.\n\nCIVICEYE Platform",
-        sentAt: "2026-06-23T18:06:00Z",
-        status: "sent"
-      }
-    ]
-  },
-  {
-    id: "CIV-COI-1005",
-    reportNumber: "1005",
-    reporterName: "D. Maheshwari",
-    title: "Critical Sewage Overflow into Residential Streets",
-    description: "Sewage mixed with rainwater entering residential streets causing health hazards.",
-    location: "Podanur Main Road, Coimbatore",
-    zone: "South Zone",
-    category: "Sewage Overflow",
-    severity: "Critical",
-    status: "Escalated",
-    department: "Sewage Operations",
-    predictedDeadline: "6 hours",
-    predictedDays: 0.25,
-    timeElapsedDays: 0.5,
-    aiConfidence: 98.9,
-    reasoning: "Biohazard exposure metrics and high population density triggers automated emergency escalation vector.",
-    createdAtText: "12h ago",
-    upvotes: 89,
-    citizenVerified: false,
-    assignedOfficer: "N. Dakshinamurthy",
-    localSupervisor: "M.V. Andiappan",
-    escalationTarget: "Katta Ravi Teja",
-    delayProbability: 92, // Exceeded 6 hrs predicted deadline (elapsed is 0.5 days = 12h), triggering escalation
-    beforeImg: "/images/sewage_before.jpg",
-    afterImg: "/images/sewage_after.jpg",
-    geotag: { lat: 10.9758, lng: 76.9624 },
-    exifData: {
-      latitude: 10.9758,
-      longitude: 76.9624,
-      timestamp: "2026-06-23T07:12:00Z",
-      deviceId: "DEV-IPH-13PRO",
-      imageFreshnessScore: 97,
-      locationPlausibilityScore: 100,
-      manipulationCheckScore: 95,
-      isAuthentic: true
-    },
-    verifications: [
-      { name: "P. Senthil", votedAt: "2026-06-23T07:45:00Z", distanceMeters: 40, antiFraudPassed: true },
-      { name: "Lakshmi Devi", votedAt: "2026-06-23T08:02:00Z", distanceMeters: 75, antiFraudPassed: true },
-      { name: "R. Naveen", votedAt: "2026-06-23T08:20:00Z", distanceMeters: 110, antiFraudPassed: true }
-    ],
-    emailDispatched: true,
-    isEscalatedToCommissioner: true,
-    escalationReportSentAt: "2026-06-23T13:12:00Z",
-    emails: [
-      {
-        id: "em-1005-a",
-        issueId: "CIV-COI-1005",
-        toEmail: "n.dakshinamurthy.south@coimbatore.gov.in",
-        toRole: "Department Head",
-        recipientName: "N. Dakshinamurthy",
-        subject: "[CRITICAL SEWAGE EXPOSURE] Podanur Main Road - CIV-COI-1005",
-        body: "CRITICAL ALERT:\n\nSewage entering households at Podanur Main Road. SLA is 6 hours and elapsed time has exceeded 12 hours without resolution.\n\nDepartment: Sewage Operations\nSupervisor: M.V. Andiappan.\n\nCIVICEYE Emergency Response",
-        sentAt: "2026-06-23T08:21:00Z",
-        status: "sent"
-      },
-      {
-        id: "em-1005-comm",
-        issueId: "CIV-COI-1005",
-        toEmail: "katta.raviteja.commissioner@coimbatore.gov.in",
-        toRole: "Municipal Commissioner",
-        recipientName: "Katta Ravi Teja",
-        subject: "[COMMISSIONER ESCALATION] Critical Delay in Sewage Resolution - CIV-COI-1005",
-        body: "Respected Commissioner Katta Ravi Teja Sir,\n\nWe are escalating a critical public health failure in the South Zone (Podanur Main Road). Sewage mixed with rainwater has been entering residential streets for over 12 hours. The Sewage Operations department under N. Dakshinamurthy has failed to resolve this within the predicted 6-hour SLA.\n\nEscalation Parameters:\n- Issue ID: CIV-COI-1005\n- Performance index for Sewage Operations: 25.0% (Threshold for escalation is < 30.0%)\n- Worst-performing officer flagged: N. Dakshinamurthy\n- Delay factor: Live public health biohazard exposure\n\nPlease find the attached analytical performance briefing for direct command intervention.\n\nRegards,\nCIVICEYE Commissioner Escalation Engine",
-        sentAt: "2026-06-23T13:12:00Z",
-        status: "sent"
-      }
-    ]
-  }
+const AREAS_INFO = [
+  { name: "Gandhipuram", zone: "Central Zone", lat: 11.0183, lng: 76.9725 },
+  { name: "RS Puram", zone: "Central Zone", lat: 11.0084, lng: 76.9512 },
+  { name: "Town Hall", zone: "Central Zone", lat: 10.9967, lng: 76.9614 },
+  { name: "Race Course", zone: "Central Zone", lat: 10.9996, lng: 76.9774 },
+  { name: "Sivananda Colony", zone: "Central Zone", lat: 11.0253, lng: 76.9644 },
+  { name: "Peelamedu", zone: "East Zone", lat: 11.0287, lng: 77.0024 },
+  { name: "Singanallur", zone: "East Zone", lat: 11.0026, lng: 77.0238 },
+  { name: "Ganapathy", zone: "East Zone", lat: 11.0312, lng: 76.9815 },
+  { name: "Vilankurichi", zone: "East Zone", lat: 11.0458, lng: 77.0215 },
+  { name: "Kalapatti", zone: "East Zone", lat: 11.0621, lng: 77.0392 },
+  { name: "Saibaba Colony", zone: "West Zone", lat: 11.0235, lng: 76.9452 },
+  { name: "Vadavalli", zone: "West Zone", lat: 11.0212, lng: 76.9015 },
+  { name: "Kovaipudur", zone: "West Zone", lat: 10.9525, lng: 76.9112 },
+  { name: "Mettupalayam Road", zone: "West Zone", lat: 11.0415, lng: 76.9412 },
+  { name: "Saravanampatti", zone: "North Zone", lat: 11.0783, lng: 76.9925 },
+  { name: "Thudiyalur", zone: "North Zone", lat: 11.0812, lng: 76.9416 },
+  { name: "Ukkadam", zone: "South Zone", lat: 10.9856, lng: 76.9621 },
+  { name: "Podanur", zone: "South Zone", lat: 10.9758, lng: 76.9624 },
+  { name: "Kuniamuthur", zone: "South Zone", lat: 10.9635, lng: 76.9385 },
+  { name: "Sundarapuram", zone: "South Zone", lat: 10.9512, lng: 76.9685 }
 ];
 
+const CATEGORIES_INFO = [
+  { category: "Road Damage" as const, department: "Road", title: "Severe Potholes and Road Crack", desc: "Large crater and deep potholes on the main transit lane, causing severe risk of bike skid accidents and heavy traffic delay during peak hours.", before: "/images/road/road_damage_default.jpg", after: "/images/completed/road_fixed_default.jpg" },
+  { category: "Water Leakage" as const, department: "Water", title: "Potable Underground Pipeline Leakage", desc: "Main potable water supply pipe leakage detected. Thousands of liters of pure drinking water are being wasted and flooding the surrounding pavements.", before: "/images/water/water_leak_default.jpg", after: "/images/completed/water_fixed_default.jpg" },
+  { category: "Garbage Overflow" as const, department: "Sewage", title: "Overflowing Public Waste Dustbin", desc: "Public waste bins are completely overflowing. Garbage has spread on the road for the last three days causing terrible stench, stray dog hazard, and flies.", before: "/images/garbage/garbage_default.jpg", after: "/images/completed/garbage_fixed_default.jpg" },
+  { category: "Streetlight Failure" as const, department: "Electricity", title: "Complete Streetlight Segment Outage", desc: "Multiple consecutive municipal streetlights are not working, casting the entire residential road in total darkness and raising severe safety concerns at night.", before: "/images/streetlight/streetlight_default.jpg", after: "/images/completed/streetlight_fixed_default.jpg" },
+  { category: "Sewage Overflow" as const, department: "Sewage", title: "Open Sewage Drain Block and Overflow", desc: "Domestic sewage line is clogged, causing raw contaminated wastewater to overflow into the street and residential pathways. Extremely hazardous public health threat.", before: "/images/sewage/sewage_default.jpg", after: "/images/completed/sewage_fixed_default.jpg" }
+];
+
+export const COIMBATORE_OFFICERS = [
+  "Eng. Rajendran",
+  "Eng. Balasubramani",
+  "Officer Manikandan",
+  "Eng. Dinesh",
+  "Officer Saravanan",
+  "Eng. Gopinath",
+  "Officer Kumaravel",
+  "Officer Magesh",
+  "Officer Jagan"
+];
+
+const CITIZENS_POOL = [
+  { name: "R. Prakash", id: "cit-101" },
+  { name: "Vignesh Kumar", id: "cit-102" },
+  { name: "K. Meenakshi", id: "cit-103" },
+  { name: "Arun Kumar", id: "cit-104" },
+  { name: "D. Maheshwari", id: "cit-105" },
+  { name: "S. Karthikeyan", id: "cit-106" },
+  { name: "M. Revathi", id: "cit-107" },
+  { name: "Anitha Raj", id: "cit-108" }
+];
+
+export const getIssueImages = (category: string, area: string, isCompleted: boolean) => {
+  const normArea = area.toLowerCase().replace(/\s+/g, '');
+  
+  if (category === "Road Damage") {
+    if (normArea.includes("gandhipuram")) {
+      return {
+        before: "/images/road/road_damage_gandhipuram.jpg",
+        after: isCompleted ? "/images/completed/road_fixed_gandhipuram.jpg" : undefined
+      };
+    }
+    if (normArea.includes("rspuram")) {
+      return {
+        before: "/images/road/road_damage_rspuram.jpg",
+        after: isCompleted ? "/images/completed/road_fixed_rspuram.jpg" : undefined
+      };
+    }
+    if (normArea.includes("peelamedu")) {
+      return {
+        before: "/images/road/road_damage_peelamedu.jpg",
+        after: isCompleted ? "/images/completed/road_fixed_peelamedu.jpg" : undefined
+      };
+    }
+    if (normArea.includes("saibaba")) {
+      return {
+        before: "/images/road/road_damage_saibaba.jpg",
+        after: isCompleted ? "/images/completed/road_fixed_saibaba.jpg" : undefined
+      };
+    }
+    return {
+      before: "/images/road/road_damage_default.jpg",
+      after: isCompleted ? "/images/completed/road_fixed_default.jpg" : undefined
+    };
+  }
+
+  if (category === "Water Leakage") {
+    if (normArea.includes("rspuram")) {
+      return {
+        before: "/images/water/water_leak_rspuram.jpg",
+        after: isCompleted ? "/images/completed/water_fixed_rspuram.jpg" : undefined
+      };
+    }
+    if (normArea.includes("vadavalli")) {
+      return {
+        before: "/images/water/water_leak_vadavalli.jpg",
+        after: isCompleted ? "/images/completed/water_fixed_vadavalli.jpg" : undefined
+      };
+    }
+    if (normArea.includes("gandhipuram")) {
+      return {
+        before: "/images/water/water_leak_gandhipuram.jpg",
+        after: isCompleted ? "/images/completed/water_fixed_gandhipuram.jpg" : undefined
+      };
+    }
+    return {
+      before: "/images/water/water_leak_default.jpg",
+      after: isCompleted ? "/images/completed/water_fixed_default.jpg" : undefined
+    };
+  }
+
+  if (category === "Garbage Overflow") {
+    if (normArea.includes("ukkadam")) {
+      return {
+        before: "/images/garbage/garbage_ukkadam.jpg",
+        after: isCompleted ? "/images/completed/garbage_fixed_ukkadam.jpg" : undefined
+      };
+    }
+    if (normArea.includes("podanur")) {
+      return {
+        before: "/images/garbage/garbage_podanur.jpg",
+        after: isCompleted ? "/images/completed/garbage_fixed_podanur.jpg" : undefined
+      };
+    }
+    return {
+      before: "/images/garbage/garbage_default.jpg",
+      after: isCompleted ? "/images/completed/garbage_fixed_default.jpg" : undefined
+    };
+  }
+
+  if (category === "Streetlight Failure") {
+    if (normArea.includes("peelamedu")) {
+      return {
+        before: "/images/streetlight/streetlight_peelamedu.jpg",
+        after: isCompleted ? "/images/completed/streetlight_fixed_peelamedu.jpg" : undefined
+      };
+    }
+    if (normArea.includes("kuniamuthur")) {
+      return {
+        before: "/images/streetlight/streetlight_kuniamuthur.jpg",
+        after: isCompleted ? "/images/completed/streetlight_fixed_kuniamuthur.jpg" : undefined
+      };
+    }
+    return {
+      before: "/images/streetlight/streetlight_default.jpg",
+      after: isCompleted ? "/images/completed/streetlight_fixed_default.jpg" : undefined
+    };
+  }
+
+  if (category === "Sewage Overflow") {
+    if (normArea.includes("singanallur")) {
+      return {
+        before: "/images/sewage/sewage_singanallur.jpg",
+        after: isCompleted ? "/images/completed/sewage_fixed_singanallur.jpg" : undefined
+      };
+    }
+    if (normArea.includes("townhall")) {
+      return {
+        before: "/images/sewage/sewage_townhall.jpg",
+        after: isCompleted ? "/images/completed/sewage_fixed_townhall.jpg" : undefined
+      };
+    }
+    return {
+      before: "/images/sewage/sewage_default.jpg",
+      after: isCompleted ? "/images/completed/sewage_fixed_default.jpg" : undefined
+    };
+  }
+
+  return {
+    before: "/images/road/road_damage_default.jpg",
+    after: isCompleted ? "/images/completed/road_fixed_default.jpg" : undefined
+  };
+};
+
+export const generateSeededIssues = (): CivicIssue[] => {
+  const list: CivicIssue[] = [];
+  const statuses: IssueStatus[] = ["Pending", "Verified", "Assigned", "In Progress", "Completed", "Escalated"];
+  const urgencies: SeverityLevel[] = ["Low", "Medium", "High", "Critical"];
+
+  for (let i = 0; i < 35; i++) {
+    const areaInfo = AREAS_INFO[i % AREAS_INFO.length];
+    const catInfo = CATEGORIES_INFO[i % CATEGORIES_INFO.length];
+    
+    // Distribute statuses realistically
+    let status: IssueStatus = "Pending";
+    if (i < 8) status = "Completed";
+    else if (i < 15) status = "In Progress";
+    else if (i < 22) status = "Assigned";
+    else if (i < 28) status = "Verified";
+    else if (i < 32) status = "Pending";
+    else status = "Escalated";
+
+    const severity = urgencies[i % urgencies.length];
+    const reporter = CITIZENS_POOL[i % CITIZENS_POOL.length];
+    const officer = COIMBATORE_OFFICERS[i % COIMBATORE_OFFICERS.length];
+    const reportNum = (1001 + i).toString();
+    const id = `CIV-COI-${reportNum}`;
+    const isCompleted = status === "Completed";
+    const upvotes = 5 + (i * 4) % 85;
+    
+    const imgData = getIssueImages(catInfo.category, areaInfo.name, isCompleted);
+
+    const issue: CivicIssue = {
+      id,
+      reportNumber: reportNum,
+      reporterName: reporter.name,
+      userId: reporter.id,
+      title: `${catInfo.title} in ${areaInfo.name}`,
+      description: `${catInfo.desc} This issue has been severe for several days, causing severe hazard and public distress in the ${areaInfo.name} residential pocket. Immediate engineering support requested.`,
+      location: `${areaInfo.name}, Coimbatore, Tamil Nadu`,
+      zone: areaInfo.zone,
+      category: catInfo.category,
+      severity,
+      status,
+      department: catInfo.department,
+      predictedDeadline: severity === "Critical" ? "6 hours" : severity === "High" ? "18 hours" : severity === "Medium" ? "3 days" : "5 days",
+      predictedDays: severity === "Critical" ? 0.25 : severity === "High" ? 0.75 : severity === "Medium" ? 3 : 5,
+      timeElapsedDays: isCompleted ? 0.4 : 0.1,
+      aiConfidence: 87 + (i * 3) % 13,
+      reasoning: `Telemetry edge-node analysis detects water pressure discrepancy and visual blockage flow rate anomalies matching ${severity} metrics.`,
+      createdAtText: `${1 + (i % 7)}d ago`,
+      upvotes,
+      citizenVerified: status !== "Pending",
+      assignedOfficer: status === "Pending" ? "" : officer,
+      localSupervisor: "Savitha CCMC",
+      delayProbability: i % 5 === 0 ? 38 : 10,
+      beforeImg: imgData.before,
+      afterImg: imgData.after,
+      geotag: { lat: areaInfo.lat, lng: areaInfo.lng },
+      exifData: {
+        latitude: areaInfo.lat,
+        longitude: areaInfo.lng,
+        timestamp: new Date(Date.now() - (i + 1) * 12 * 3600 * 1000).toISOString(),
+        deviceId: `DEV-COI-${1000 + i}`,
+        imageFreshnessScore: 95,
+        locationPlausibilityScore: 100,
+        manipulationCheckScore: 97,
+        isAuthentic: true
+      },
+      verifications: [
+        { name: "K. Murugan", votedAt: new Date(Date.now() - (i + 1) * 10 * 3600 * 1000).toISOString(), distanceMeters: 15 + i, antiFraudPassed: true },
+        { name: "R. Selvi", votedAt: new Date(Date.now() - (i + 1) * 9 * 3600 * 1000).toISOString(), distanceMeters: 45 + i, antiFraudPassed: true }
+      ],
+      emailDispatched: status !== "Pending",
+      emails: [],
+      isEscalatedToCommissioner: status === "Escalated",
+
+      // Conformed fields for Point 1 & 2
+      area: areaInfo.name,
+      citizenName: reporter.name,
+      citizenId: reporter.id,
+      officerName: status === "Pending" ? "" : officer,
+      urgency: severity,
+      beforeImage: imgData.before,
+      afterImage: imgData.after,
+      remarks: isCompleted ? `Municipal restoration work completed successfully. Excavated area cleared and asphalt laid by CCMC team.` : undefined,
+      comments: [
+        { id: `cmt-1-${id}`, userId: "cit-101", userName: "R. Prakash", userRole: "citizen", text: "This blocks school vans in the morning. Extremely dangerous.", createdAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString() },
+        { id: `cmt-2-${id}`, userId: "cit-103", userName: "K. Meenakshi", userRole: "citizen", text: "Reported to ward office but no action yet, hoping CivicEye automates it.", createdAt: new Date(Date.now() - 12 * 3600 * 1000).toISOString() }
+      ],
+      ratings: isCompleted ? [5, 4, 5] : [],
+      reviews: isCompleted ? [
+        { userId: "cit-102", userName: "Vignesh Kumar", rating: 5, text: "Excellent and quick repair. Thank you to the municipal team!", createdAt: new Date().toISOString() }
+      ] : [],
+      createdAt: new Date(Date.now() - (i + 2) * 24 * 3600 * 1000).toISOString(),
+      completedAt: isCompleted ? new Date(Date.now() - i * 12 * 3600 * 1000).toISOString() : undefined
+    };
+
+    list.push(issue);
+  }
+
+  // Append custom sample cases filed by R. Prakash (cit-101 / cit-1)
+  const prakashIssues: CivicIssue[] = [
+    {
+      id: "CIV-COI-9001",
+      reportNumber: "9001",
+      reporterName: "R. Prakash",
+      userId: "cit-101",
+      title: "Major Drinking Water Leakage on Sathy Road",
+      description: "Severe drinking water main pipe leakage. Thousands of liters of pure water are wasted on the road since morning. Public requested immediate repair.",
+      location: "14, Sathy Road, Gandhipuram, Coimbatore - 641012",
+      zone: "Central Zone",
+      category: "Water Leakage",
+      severity: "High",
+      status: "In Progress",
+      department: "Water",
+      predictedDeadline: "18 hours",
+      predictedDays: 0.75,
+      timeElapsedDays: 0.2,
+      aiConfidence: 94,
+      reasoning: "Flow discrepancy reports matched with telemetry water main pressure drops.",
+      createdAtText: "1d ago",
+      upvotes: 14,
+      citizenVerified: true,
+      assignedOfficer: "S. Ganeshan",
+      localSupervisor: "Savitha CCMC",
+      delayProbability: 12,
+      beforeImg: "/images/water/water_leak_gandhipuram.jpg",
+      geotag: { lat: 11.0183, lng: 76.9725 },
+      exifData: {
+        latitude: 11.0183,
+        longitude: 76.9725,
+        timestamp: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+        deviceId: "DEV-COI-9001",
+        imageFreshnessScore: 99,
+        locationPlausibilityScore: 100,
+        manipulationCheckScore: 98,
+        isAuthentic: true
+      },
+      verifications: [
+        { name: "K. Murugan", votedAt: new Date().toISOString(), distanceMeters: 12, antiFraudPassed: true }
+      ],
+      emailDispatched: true,
+      emails: [],
+      isEscalatedToCommissioner: false,
+      area: "Gandhipuram",
+      citizenName: "R. Prakash",
+      citizenId: "cit-101",
+      officerName: "S. Ganeshan",
+      urgency: "High",
+      beforeImage: "/images/water/water_leak_gandhipuram.jpg",
+      comments: [
+        { id: "cmt-9001-1", userId: "cit-102", userName: "Vignesh Kumar", userRole: "citizen", text: "Water is flowing into nearby shops. Please fix quickly!", createdAt: new Date().toISOString() }
+      ],
+      createdAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString()
+    },
+    {
+      id: "CIV-COI-9002",
+      reportNumber: "9002",
+      reporterName: "R. Prakash",
+      userId: "cit-101",
+      title: "Unfilled Potholes near Gandhipuram Bus Stand",
+      description: "Extremely deep potholes near the bus stand exit curve. Two-wheelers are slipping constantly in the dark hours. Extremely hazardous for public commuters.",
+      location: "Gandhipuram Bus Stand Road, Coimbatore - 641012",
+      zone: "Central Zone",
+      category: "Road Damage",
+      severity: "Critical",
+      status: "Pending",
+      department: "Road",
+      predictedDeadline: "6 hours",
+      predictedDays: 0.25,
+      timeElapsedDays: 0.05,
+      aiConfidence: 96,
+      reasoning: "Visual assessment algorithm highlights depth of pothole exceeds 12cm, representing an immediate traffic collision hazard.",
+      createdAtText: "3h ago",
+      upvotes: 28,
+      citizenVerified: false,
+      assignedOfficer: "",
+      localSupervisor: "Savitha CCMC",
+      delayProbability: 5,
+      beforeImg: "/images/road/road_damage_gandhipuram.jpg",
+      geotag: { lat: 11.0201, lng: 76.9698 },
+      exifData: {
+        latitude: 11.0201,
+        longitude: 76.9698,
+        timestamp: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
+        deviceId: "DEV-COI-9002",
+        imageFreshnessScore: 100,
+        locationPlausibilityScore: 100,
+        manipulationCheckScore: 99,
+        isAuthentic: true
+      },
+      verifications: [],
+      emailDispatched: false,
+      emails: [],
+      isEscalatedToCommissioner: false,
+      area: "Gandhipuram",
+      citizenName: "R. Prakash",
+      citizenId: "cit-101",
+      officerName: "",
+      urgency: "Critical",
+      beforeImage: "/images/road/road_damage_gandhipuram.jpg",
+      comments: [],
+      createdAt: new Date(Date.now() - 3 * 3600 * 1000).toISOString()
+    },
+    {
+      id: "CIV-COI-9003",
+      reportNumber: "9003",
+      reporterName: "R. Prakash",
+      userId: "cit-101",
+      title: "Garbage Overflow at Gandhipuram 4th Street Bin",
+      description: "Large municipal garbage container is completely filled and trash is spilling onto the footpath. Stray dogs are scattering the garbage. Foul smell is spreading in the entire street.",
+      location: "4th Street Corner, Gandhipuram, Coimbatore - 641012",
+      zone: "Central Zone",
+      category: "Garbage Overflow",
+      severity: "Medium",
+      status: "Completed",
+      department: "Sewage",
+      predictedDeadline: "3 days",
+      predictedDays: 3.0,
+      timeElapsedDays: 1.2,
+      aiConfidence: 91,
+      reasoning: "Capacity overflows reported by neighborhood network clusters.",
+      createdAtText: "3d ago",
+      upvotes: 9,
+      citizenVerified: true,
+      assignedOfficer: "S. Ganeshan",
+      localSupervisor: "Savitha CCMC",
+      delayProbability: 15,
+      beforeImg: "/images/garbage/garbage_default.jpg",
+      afterImg: "/images/completed/garbage_fixed_default.jpg",
+      geotag: { lat: 11.0175, lng: 76.9740 },
+      exifData: {
+        latitude: 11.0175,
+        longitude: 76.9740,
+        timestamp: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(),
+        deviceId: "DEV-COI-9003",
+        imageFreshnessScore: 98,
+        locationPlausibilityScore: 100,
+        manipulationCheckScore: 97,
+        isAuthentic: true
+      },
+      verifications: [
+        { name: "K. Murugan", votedAt: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString(), distanceMeters: 25, antiFraudPassed: true }
+      ],
+      emailDispatched: true,
+      emails: [],
+      isEscalatedToCommissioner: false,
+      area: "Gandhipuram",
+      citizenName: "R. Prakash",
+      citizenId: "cit-101",
+      officerName: "S. Ganeshan",
+      urgency: "Medium",
+      beforeImage: "/images/garbage/garbage_default.jpg",
+      afterImage: "/images/completed/garbage_fixed_default.jpg",
+      remarks: "The waste bin was completely cleared, sanitized, and surrounding footpath washed by CCMC sanitation crew.",
+      comments: [
+        { id: "cmt-9003-1", userId: "cit-103", userName: "K. Meenakshi", userRole: "citizen", text: "Thank you for the quick cleanup!", createdAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString() }
+      ],
+      createdAt: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(),
+      completedAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString()
+    }
+  ];
+
+  list.push(...prakashIssues);
+
+  return list;
+};
+
+export const INITIAL_ISSUES: CivicIssue[] = generateSeededIssues();
+
 export const DEPARTMENT_METRICS: DepartmentMetric[] = [
-  { name: "Water Board", code: "H2O", zone: "Central Zone", slaCompliance: 80.0, totalCases: 5, solvedCases: 4, pendingCases: 1, delayedCases: 0, avgResolutionDays: 1.2 },
-  { name: "Municipal Engineering", code: "ENG", zone: "East Zone", slaCompliance: 66.7, totalCases: 3, solvedCases: 2, pendingCases: 1, delayedCases: 0, avgResolutionDays: 3.5 },
-  { name: "Sanitation Dept", code: "SAN", zone: "West Zone", slaCompliance: 75.0, totalCases: 4, solvedCases: 3, pendingCases: 1, delayedCases: 0, avgResolutionDays: 0.8 },
-  { name: "Electricity Board", code: "EB", zone: "North Zone", slaCompliance: 50.0, totalCases: 2, solvedCases: 1, pendingCases: 1, delayedCases: 0, avgResolutionDays: 1.8 },
-  { name: "Sewage Operations", code: "SEW", zone: "South Zone", slaCompliance: 25.0, totalCases: 4, solvedCases: 1, pendingCases: 2, delayedCases: 1, avgResolutionDays: 2.5 }
+  { name: "Water", code: "WAT", zone: "Central Zone", slaCompliance: 82.5, totalCases: 12, solvedCases: 10, pendingCases: 2, delayedCases: 0, avgResolutionDays: 1.1 },
+  { name: "Road", code: "ROD", zone: "East Zone", slaCompliance: 68.0, totalCases: 15, solvedCases: 11, pendingCases: 4, delayedCases: 1, avgResolutionDays: 2.8 },
+  { name: "Sewage", code: "SEW", zone: "South Zone", slaCompliance: 45.0, totalCases: 18, solvedCases: 9, pendingCases: 7, delayedCases: 2, avgResolutionDays: 3.2 },
+  { name: "Electricity", code: "ELE", zone: "North Zone", slaCompliance: 88.0, totalCases: 10, solvedCases: 9, pendingCases: 1, delayedCases: 0, avgResolutionDays: 0.7 }
 ];
 
 export const PIPELINE_STAGES = [
