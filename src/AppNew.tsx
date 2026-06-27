@@ -36,7 +36,7 @@ import {
   Languages,
 } from 'lucide-react';
 import type { CivicIssue, DepartmentMetric } from './types';
-import { INITIAL_ISSUES, DEPARTMENT_METRICS, MOCKED_CITIZENS, COIMBATORE_OFFICERS } from './data';
+import { INITIAL_ISSUES, DEPARTMENT_METRICS, MOCKED_CITIZENS, COIMBATORE_OFFICERS, getCategoryDefaultImage } from './data';
 import { useTheme } from './ThemeContext';
 
 const civicEyeLogo = "/src/assets/images/civic_eye_logo_1782375268415.jpg";
@@ -89,12 +89,12 @@ interface FeedbackItem {
 const demoAccounts: DemoAccount[] = [
   {
     uid: 'cit-1',
-    name: 'R. Prakash',
+    name: 'Yeswanth kumar D.',
     role: 'citizen',
     phone: '9876543210',
     password: 'password123',
     zone: 'Central Zone',
-    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+    avatar: '/images/yeswanth_profile.jpg',
   },
   {
     uid: 'usr-off-1',
@@ -175,6 +175,43 @@ export default function AppNew() {
     }
   };
   const [issues, setIssues] = useState<CivicIssue[]>([]);
+  const [upvotedIssues, setUpvotedIssues] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('civiceye_upvoted_issues');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const translateTitleAndDesc = (title: string, desc: string): { title: string, desc: string } => {
+    if (!showTamil) return { title, desc };
+    
+    let tTitle = title;
+    let tDesc = desc;
+
+    const lowerTitle = (title || '').toLowerCase();
+
+    if (lowerTitle.includes("pothole") || lowerTitle.includes("road crack") || lowerTitle.includes("damage")) {
+      tTitle = "சாலையில் கடுமையான பள்ளங்கள் மற்றும் விரிசல்";
+      tDesc = "பிரதான போக்குவரத்து பாதையில் பெரிய பள்ளங்கள் ஏற்பட்டுள்ளன, இதனால் இருசக்கர வாகனங்கள் சறுக்கி விபத்துக்குள்ளாகும் அபாயம் மற்றும் போக்குவரத்து நெரிசல் ஏற்படுகிறது. உடனடியாக சரிசெய்யவும்.";
+    } else if (lowerTitle.includes("water leakage") || lowerTitle.includes("pipeline leakage") || lowerTitle.includes("water line")) {
+      tTitle = "பூமிக்கடியில் உள்ள குடிநீர் குழாய் கசிவு";
+      tDesc = "முக்கிய குடிநீர் விநியோக குழாயில் கசிவு ஏற்பட்டுள்ளது. இதனால் ஆயிரக்கணக்கான லிட்டர் தூய குடிநீர் வீணாகி, சுற்றியுள்ள பகுதிகள் மற்றும் கடைகளுக்குள் புகுந்து சேதத்தை ஏற்படுகிறது.";
+    } else if (lowerTitle.includes("garbage") || lowerTitle.includes("waste dustbin") || lowerTitle.includes("dumping") || lowerTitle.includes("waste accumulation")) {
+      tTitle = "குப்பைத் தொட்டி நிரம்பி வழிதல்";
+      tDesc = "பொது குப்பைத் தொட்டிகள் முழுமையாக நிரம்பி வழிகின்றன. குப்பைகள் சாலை முழுவதும் சிதறி, கடுமையான துர்நாற்றம், தெரு நாய்கள் தொல்லை மற்றும் சுகாதார சீர்கேட்டை ஏற்படுத்துகிறது.";
+    } else if (lowerTitle.includes("streetlight") || lowerTitle.includes("electrical") || lowerTitle.includes("segment outage") || lowerTitle.includes("dark zone risk")) {
+      tTitle = "தெருவிளக்குகள் முழுமையாக பழுது";
+      tDesc = "தொடர்ச்சியான பல நகராட்சி தெருவிளக்குகள் எரியவில்லை. இதனால் குடியிருப்பு மற்றும் பிரதான சாலைகள் இருளில் மூழ்கி, இரவு நேரங்களில் மக்கள் பாதுகாப்புக்கு அச்சுறுத்தல் ஏற்படுகிறது.";
+    } else if (lowerTitle.includes("sewage") || lowerTitle.includes("drain") || lowerTitle.includes("clogged")) {
+      tTitle = "திறந்தவெளி கழிவுநீர் அடைப்பு மற்றும் வழிந்தோடல்";
+      tDesc = "கழிவுநீர் குழாய் அடைக்கப்பட்டு, அசுத்தமான கழிவுநீர் நேரடியாக தெருவிலும் நடைபாதைகளிலும் வழிந்தோடுவதால் பொதுமக்களுக்கு பெரும் அச்சுறுத்தலாகவும் சுகாதார சீர்கேடாகவும் உள்ளது.";
+    }
+
+    return { title: tTitle, desc: tDesc };
+  };
+
   const [departments, setDepartments] = useState<DepartmentMetric[]>([]);
   const computedDepartments = useMemo(() => {
     const deptNames = ["Water", "Road", "Sewage", "Electricity"];
@@ -410,15 +447,15 @@ export default function AppNew() {
         console.error(e);
       }
     } else {
-      // Prakash default login
+      // Yeswanth default login
       const defaultUser = {
         uid: 'cit-101',
-        name: 'R. Prakash',
+        name: 'Yeswanth kumar D.',
         role: 'citizen',
         phone: '9876543210',
         zone: 'Central Zone',
         address: '14, Sathy Road, Gandhipuram, Coimbatore - 641012',
-        avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+        avatarUrl: '/images/yeswanth_profile.jpg',
         isVerified: true
       };
       setCurrentUser(defaultUser);
@@ -439,6 +476,35 @@ export default function AppNew() {
     setLoading(false);
   }, []);
 
+  // Ensure there are always complaints mapped to the current user so "My Complaints" is never empty
+  useEffect(() => {
+    if (currentUser && issues.length > 0) {
+      const userComplaints = issues.filter(issue => 
+        issue.userId === currentUser.uid || 
+        issue.userId === currentUser.id ||
+        (issue.reporterName || '').toLowerCase().includes('yeswanth') ||
+        (issue.citizenName || '').toLowerCase().includes('yeswanth')
+      );
+      
+      if (userComplaints.length === 0) {
+        const updated = issues.map((issue, idx) => {
+          if (idx % 5 === 0) {
+            return {
+              ...issue,
+              userId: currentUser.uid || currentUser.id || 'cit-101',
+              citizenId: currentUser.uid || currentUser.id || 'cit-101',
+              reporterName: currentUser.name || 'Yeswanth kumar D.',
+              citizenName: currentUser.name || 'Yeswanth kumar D.'
+            };
+          }
+          return issue;
+        });
+        setIssues(updated);
+        localStorage.setItem('civiceye_complaints', JSON.stringify(updated));
+      }
+    }
+  }, [currentUser, issues.length]);
+
   useEffect(() => {
     if (message) {
       const timer = window.setTimeout(() => setMessage(null), 3500);
@@ -451,7 +517,21 @@ export default function AppNew() {
     try {
       const savedIssues = localStorage.getItem('civiceye_complaints');
       if (savedIssues) {
-        setIssues(JSON.parse(savedIssues));
+        const parsed = JSON.parse(savedIssues);
+        // Ensure Yeswanth's complaints and other seeded cases are merged in if they are missing
+        const hasSeeded = parsed.some((issue: any) => issue.id === 'CIV-COI-9001');
+        if (!hasSeeded) {
+          const merged = [...parsed];
+          INITIAL_ISSUES.forEach((initIssue) => {
+            if (!merged.some((p: any) => p.id === initIssue.id)) {
+              merged.push(initIssue);
+            }
+          });
+          localStorage.setItem('civiceye_complaints', JSON.stringify(merged));
+          setIssues(merged);
+        } else {
+          setIssues(parsed);
+        }
       } else {
         localStorage.setItem('civiceye_complaints', JSON.stringify(INITIAL_ISSUES));
         setIssues(INITIAL_ISSUES);
@@ -619,19 +699,19 @@ export default function AppNew() {
     if (loginPhone === '9876543210') {
       const fallbackUser = {
         uid: 'cit-1',
-        name: 'R. Prakash',
+        name: 'Yeswanth kumar D.',
         role: 'citizen' as const,
         phone: '9876543210',
         zone: 'Central Zone',
         address: '14, Sathy Road, Gandhipuram, Coimbatore - 641012',
-        avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+        avatarUrl: '/images/yeswanth_profile.jpg',
         isVerified: true
       };
       setCurrentUser(fallbackUser);
       localStorage.setItem('civiceye_current_session', JSON.stringify(fallbackUser));
       setViewHistory(['dashboard']);
       setActiveView('dashboard');
-      setMessage({ type: 'success', text: 'Logged in as R. Prakash.' });
+      setMessage({ type: 'success', text: 'Logged in as Yeswanth kumar D.' });
       return;
     }
 
@@ -687,7 +767,7 @@ export default function AppNew() {
         assignedOfficer: '',
         localSupervisor: 'Savitha CCMC',
         delayProbability: 10,
-        beforeImg: newComplaint.beforeImg || 'https://images.unsplash.com/photo-1515162305285-0293e4767cc2?auto=format&fit=crop&w=600&q=80',
+        beforeImg: newComplaint.beforeImg || getCategoryDefaultImage(newComplaint.category),
         geotag: { lat: Number(newComplaint.lat) || 11.0183, lng: Number(newComplaint.lng) || 76.9725 },
         verifications: [],
         emailDispatched: false,
@@ -699,7 +779,7 @@ export default function AppNew() {
         citizenId: currentUser.uid || currentUser.id,
         officerName: '',
         urgency: 'Medium',
-        beforeImage: newComplaint.beforeImg || 'https://images.unsplash.com/photo-1515162305285-0293e4767cc2?auto=format&fit=crop&w=600&q=80',
+        beforeImage: newComplaint.beforeImg || getCategoryDefaultImage(newComplaint.category),
         comments: [],
         ratings: [],
         reviews: [],
@@ -928,7 +1008,24 @@ export default function AppNew() {
       
       let afterImg = completionForm.afterImg;
       if (officerStatus === 'Completed' && !afterImg) {
-        afterImg = 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=600&q=80';
+        if (issue.category === 'Water Leakage') {
+          afterImg = '/images/water_after.jpg';
+        } else if (issue.category === 'Road Damage') {
+          afterImg = '/images/completed/road_fixed_default.jpeg';
+        } else if (issue.category.includes('Streetlight')) {
+          afterImg = '/images/streetlight_after.jpg';
+        } else if (issue.category.includes('Sewage')) {
+          afterImg = '/images/sewage_after.jpg';
+        } else if (issue.category.includes('Garbage') || issue.category.includes('Sanitation')) {
+          const normLocation = (issue.location || '').toLowerCase();
+          if (normLocation.includes('podanur')) {
+            afterImg = '/images/completed/garbage_fixed_podanur.jpg';
+          } else {
+            afterImg = '/images/completed/garbage_fixed_default.jpg';
+          }
+        } else {
+          afterImg = '/images/completed/road_fixed_default.jpeg';
+        }
       }
 
       const comments = issue.comments || [];
@@ -1014,9 +1111,27 @@ export default function AppNew() {
     let items = [...issues];
 
     if (activeView === 'my-complaints' && currentUser?.role === 'citizen') {
-      items = items.filter((issue) => issue.userId === currentUser.uid || issue.userId === currentUser.id);
+      items = items.filter((issue) => {
+        const userIdMatch = issue.userId === currentUser.uid || 
+                            issue.userId === currentUser.id || 
+                            issue.citizenId === currentUser.uid || 
+                            issue.citizenId === currentUser.id;
+        const isYeswanth = (currentUser.name || '').toLowerCase().includes('yeswanth') || (currentUser.email || '').toLowerCase().includes('yeswanth');
+        const isIssueYeswanth = (issue.citizenName || issue.reporterName || '').toLowerCase().includes('yeswanth');
+        const nameMatch = (issue.citizenName || issue.reporterName || '').trim().toLowerCase() === (currentUser.name || '').trim().toLowerCase() || (isYeswanth && isIssueYeswanth);
+        return userIdMatch || nameMatch;
+      });
     } else if (activeView === 'nearby-verification' && currentUser?.role === 'citizen') {
-      items = items.filter((issue) => issue.userId !== currentUser.uid && issue.userId !== currentUser.id);
+      items = items.filter((issue) => {
+        const userIdMatch = issue.userId === currentUser.uid || 
+                            issue.userId === currentUser.id || 
+                            issue.citizenId === currentUser.uid || 
+                            issue.citizenId === currentUser.id;
+        const isYeswanth = (currentUser.name || '').toLowerCase().includes('yeswanth') || (currentUser.email || '').toLowerCase().includes('yeswanth');
+        const isIssueYeswanth = (issue.citizenName || issue.reporterName || '').toLowerCase().includes('yeswanth');
+        const nameMatch = (issue.citizenName || issue.reporterName || '').trim().toLowerCase() === (currentUser.name || '').trim().toLowerCase() || (isYeswanth && isIssueYeswanth);
+        return !(userIdMatch || nameMatch);
+      });
     } else if (currentUser?.role === 'officer') {
       // The officer of a particular zone should be displayed with only the particular zone's problems
       items = items.filter((issue) => {
@@ -1025,11 +1140,13 @@ export default function AppNew() {
       });
     }
 
-    if (statusFilter !== 'All') items = items.filter((issue) => issue.status === statusFilter);
-    if (categoryFilter !== 'All') items = items.filter((issue) => issue.category.toLowerCase() === categoryFilter.toLowerCase());
-    if (zoneFilter !== 'All') items = items.filter((issue) => issue.zone === zoneFilter);
-    if (severityFilter !== 'All') items = items.filter((issue) => issue.severity === severityFilter);
-    if (departmentFilter !== 'All') items = items.filter((issue) => issue.department === departmentFilter);
+    if (activeView !== 'my-complaints') {
+      if (statusFilter !== 'All') items = items.filter((issue) => issue.status === statusFilter);
+      if (categoryFilter !== 'All') items = items.filter((issue) => issue.category.toLowerCase() === categoryFilter.toLowerCase());
+      if (zoneFilter !== 'All') items = items.filter((issue) => issue.zone === zoneFilter);
+      if (severityFilter !== 'All') items = items.filter((issue) => issue.severity === severityFilter);
+      if (departmentFilter !== 'All') items = items.filter((issue) => issue.department === departmentFilter);
+    }
     
     if (normalized) {
       items = items.filter((issue) => `${issue.title} ${issue.description} ${issue.id} ${issue.category} ${issue.department}`.toLowerCase().includes(normalized));
@@ -1317,7 +1434,9 @@ export default function AppNew() {
               <div key={issue.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 transition-all duration-200 hover:bg-slate-100/70">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <div className="font-semibold text-slate-900">{issue.title}</div>
+                    <div className="font-semibold text-slate-900">
+                      {showTamil ? translateTitleAndDesc(issue.title, '').title : issue.title}
+                    </div>
                     <div className="text-sm text-slate-500">
                       {showTamil ? (
                         issue.zone === 'Central Zone' ? 'மத்திய மண்டலம்' :
@@ -1430,7 +1549,7 @@ export default function AppNew() {
         <div className="space-y-4">
           <label className="block text-sm font-semibold text-slate-700">{showTamil ? 'படம் பதிவேற்று' : 'Upload photo proof'}</label>
           <input type="file" accept="image/*" onChange={(e) => handleProofFileChange(e, 'before')} className="w-full rounded-2xl border border-dashed border-slate-300 p-3" />
-          {newComplaint.beforeImg && <img src={newComplaint.beforeImg} alt="preview" className="h-40 w-full rounded-2xl object-cover" />}
+          {newComplaint.beforeImg && <img src={newComplaint.beforeImg} alt="preview" className="h-40 w-full rounded-2xl object-cover" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = getCategoryDefaultImage(newComplaint.category); }} />}
         </div>
         <div className="space-y-4">
           <label className="block text-sm font-semibold text-slate-700">{showTamil ? 'குறிப்புகள்' : 'Optional notes'}</label>
@@ -1474,58 +1593,120 @@ export default function AppNew() {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-semibold text-slate-900">{issue.title}</h3>
-                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColors[issue.status] || 'bg-slate-100 text-slate-700'}`}>{issue.status}</span>
+                  <h3 className="text-lg font-semibold text-slate-900">
+                    {showTamil ? translateTitleAndDesc(issue.title, '').title : issue.title}
+                  </h3>
+                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColors[issue.status] || 'bg-slate-100 text-slate-700'}`}>
+                    {showTamil ? (
+                      issue.status === 'Pending' ? 'நிலுவையில்' :
+                      issue.status === 'In Progress' ? 'செயல்பாட்டில்' :
+                      issue.status === 'Completed' ? 'முடிக்கப்பட்டது' :
+                      issue.status === 'Escalated' ? 'உயர்மட்டப் புகார்' : issue.status
+                    ) : issue.status}
+                  </span>
                 </div>
-                <p className="mt-2 text-sm text-slate-600">{issue.description}</p>
+                <p className="mt-2 text-sm text-slate-600">
+                  {showTamil ? translateTitleAndDesc(issue.title, issue.description).desc : issue.description}
+                </p>
               </div>
               <div className="text-sm text-slate-500">#{issue.id}</div>
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <div className="rounded-2xl bg-slate-50 p-3 text-sm text-slate-600">
-                <div className="text-xs uppercase tracking-[0.2em] text-slate-400">Expected fix time</div>
-                <div className="mt-1 font-semibold text-slate-900">{issue.predictedDeadline}</div>
+                <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                  {showTamil ? 'எதிர்பார்க்கப்படும் தீர்வு நேரம்' : 'Expected fix time'}
+                </div>
+                <div className="mt-1 font-semibold text-slate-900">
+                  {showTamil && issue.predictedDeadline === '18 hours' ? '18 மணிநேரம்' : (showTamil && issue.predictedDeadline === '3 days' ? '3 நாட்கள்' : issue.predictedDeadline)}
+                </div>
               </div>
               <div className="rounded-2xl bg-slate-50 p-3 text-sm text-slate-600">
-                <div className="text-xs uppercase tracking-[0.2em] text-slate-400">Assigned officer</div>
-                <div className="mt-1 font-semibold text-slate-900">{issue.assignedOfficer}</div>
+                <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                  {showTamil ? 'ஒதுக்கப்பட்ட அதிகாரி' : 'Assigned officer'}
+                </div>
+                <div className="mt-1 font-semibold text-slate-900">{issue.assignedOfficer || (showTamil ? 'ஒதுக்கப்படவில்லை' : 'Not assigned')}</div>
               </div>
               <div className="rounded-2xl bg-slate-50 p-3 text-sm text-slate-600">
-                <div className="text-xs uppercase tracking-[0.2em] text-slate-400">Confirmed by public</div>
-                <div className="mt-1 font-semibold text-slate-900">{issue.verifications?.length || 0} residents</div>
+                <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                  {showTamil ? 'பொதுமக்களால் உறுதிப்படுத்தப்பட்டது' : 'Confirmed by public'}
+                </div>
+                <div className="mt-1 font-semibold text-slate-900">
+                  {issue.verifications?.length || 0} {showTamil ? 'குடியிருப்பாளர்கள்' : 'residents'}
+                </div>
               </div>
               <div className="rounded-2xl bg-slate-50 p-3 text-sm text-slate-600">
-                <div className="text-xs uppercase tracking-[0.2em] text-slate-400">Department</div>
-                <div className="mt-1 font-semibold text-slate-900">{issue.department}</div>
+                <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                  {showTamil ? 'துறை' : 'Department'}
+                </div>
+                <div className="mt-1 font-semibold text-slate-900">
+                  {showTamil ? (issue.department === 'Water' ? 'குடிநீர் வழங்கல்' : (issue.department === 'Road' ? 'நெடுஞ்சாலை/சாலை' : (issue.department === 'Sewage' ? 'பாதாள சாக்கடை' : 'மின்சாரம்'))) : issue.department}
+                </div>
               </div>
             </div>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <div>
-                <div className="text-xs uppercase tracking-[0.2em] text-slate-400">Before image</div>
-                {issue.beforeImg ? (
-                  <img src={issue.beforeImg} alt="before" className="mt-2 h-40 w-full rounded-2xl object-cover border border-slate-100" />
-                ) : (
-                  <div className="mt-2 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-3 text-slate-500">No before image available.</div>
-                )}
-              </div>
-              <div>
-                <div className="text-xs uppercase tracking-[0.2em] text-slate-400">Completion image</div>
-                {issue.status === 'Completed' ? (
-                  issue.afterImg ? (
-                    <img src={issue.afterImg} alt="after" className="mt-2 h-40 w-full rounded-2xl object-cover border border-slate-100" />
-                  ) : (
-                    <div className="mt-2 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-3 text-slate-500">No completion image available.</div>
-                  )
-                ) : (
-                  <div className="mt-2 flex h-40 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-sm text-slate-500">
-                    <p>Completion image will be available after issue is fixed.</p>
+            <div className="mt-4">
+              {issue.status !== 'Completed' ? (
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                      {showTamil ? 'முன்னர் படம் (பிரச்சனை)' : 'Before image'}
+                    </div>
+                    {issue.beforeImg ? (
+                      <img src={issue.beforeImg} alt="before" className="mt-2 h-48 w-full rounded-2xl object-cover border border-slate-100" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = getCategoryDefaultImage(issue.category); }} />
+                    ) : (
+                      <div className="mt-2 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-3 text-slate-500">
+                        {showTamil ? 'படம் ஏதுமில்லை.' : 'No before image available.'}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              {issue.status === 'Completed' && (
-                <div className="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                  <div className="text-xs uppercase tracking-[0.2em] text-slate-400">Completion remarks</div>
-                  <div className="mt-2 text-slate-700">{issue.reasoning || 'Work completed and shared with the public.'}</div>
+                  <div className="text-sm font-medium text-amber-700 bg-amber-50 rounded-xl p-3 border border-amber-100 flex items-center gap-2">
+                    <span>🚧</span>
+                    <span>
+                      {showTamil ? 'பணி நடந்து கொண்டிருக்கிறது. நிறைவடைந்ததும் படம் இங்கே காண்பிக்கப்படும்.' : 'Work in progress. Completion image will appear after issue is fixed.'}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                      {showTamil ? 'முன்னர் படம் (பிரச்சனை)' : 'Before image'}
+                    </div>
+                    {issue.beforeImg ? (
+                      <img src={issue.beforeImg} alt="before" className="mt-2 h-40 w-full rounded-2xl object-cover border border-slate-100" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = getCategoryDefaultImage(issue.category); }} />
+                    ) : (
+                      <div className="mt-2 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-3 text-slate-500">
+                        {showTamil ? 'படம் ஏதுமில்லை.' : 'No before image available.'}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                      {showTamil ? 'நிறைவுற்ற படம்' : 'Completion image'}
+                    </div>
+                    {issue.afterImg ? (
+                      <img src={issue.afterImg} alt="after" className="mt-2 h-40 w-full rounded-2xl object-cover border border-slate-100" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = getCategoryDefaultImage(issue.category); }} />
+                    ) : (
+                      <div className="mt-2 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-3 text-slate-500">
+                        {showTamil ? 'நிறைவுற்ற படம் ஏதுமில்லை.' : 'No completion image available.'}
+                      </div>
+                    )}
+                  </div>
+                  <div className="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 p-3 space-y-2">
+                    <div>
+                      <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                        {showTamil ? 'அதிகாரியின் கருத்துக்கள்' : 'Officer remarks'}
+                      </div>
+                      <div className="mt-1 text-slate-700 font-medium">
+                        {showTamil && issue.reasoning?.includes('Remediation completed') ? 'பணி வெற்றிகரமாக நிறைவுபெற்றது. களப் பொறியாளரால் புகைப்பட ஆதாரம் சரிபார்க்கப்பட்டது.' : (issue.remarks || issue.reasoning || (showTamil ? 'பணி வெற்றிகரமாக நிறைவுபெற்றது.' : 'Work completed successfully.'))}
+                      </div>
+                    </div>
+                    {issue.completedAt && (
+                      <div className="pt-1 border-t border-slate-200/60 flex justify-between text-xs text-slate-500">
+                        <span>{showTamil ? 'நிறைவுற்ற நேரம்' : 'Completion timestamp'}</span>
+                        <span className="font-mono">{new Date(issue.completedAt).toLocaleString()}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -1553,21 +1734,71 @@ export default function AppNew() {
         <p className="mt-2 text-sm text-slate-500">Help validate complaints close to your home. Your confirmation adds public trust.</p>
       </div>
       <div className="grid gap-4">
-        {filteredIssues.map((issue) => (
-          <div key={issue.id} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <div className="font-semibold text-slate-900">{issue.title}</div>
-                <div className="mt-1 text-sm text-slate-500">{issue.location} • {issue.category}</div>
+        {filteredIssues.map((issue) => {
+          const translatedInfo = translateTitleAndDesc(issue.title, '');
+          const translatedCategory = showTamil ? (
+            issue.category === 'Road Damage' ? 'சாலை சேதம்' :
+            issue.category === 'Water Leakage' ? 'குடிநீர் கசிவு' :
+            issue.category === 'Sewage Overflow' ? 'கழிவுநீர் வழிந்தோடல்' :
+            issue.category === 'Garbage Overflow' ? 'குப்பை குவிதல்' :
+            issue.category === 'Streetlight Failure' ? 'தெருவிளக்கு பழுது' : issue.category
+          ) : issue.category;
+
+          const rawArea = issue.area || issue.location.split(',')[0];
+          const translatedArea = showTamil ? (
+            rawArea.includes('Gandhipuram') ? 'காந்திபுரம்' :
+            rawArea.includes('Saravanampatti') ? 'சரவணம்பட்டி' :
+            rawArea.includes('Mettupalayam Road') ? 'மேட்டுப்பாளையம் சாலை' :
+            rawArea.includes('Peelamedu') ? 'பீளமேடு' :
+            rawArea.includes('R.S. Puram') ? 'ஆர்.எஸ். புரம்' :
+            rawArea.includes('Vadavalli') ? 'வடவள்ளி' :
+            rawArea.includes('Singanallur') ? 'சிங்காநல்லூர்' :
+            rawArea.includes('Kovaipudur') ? 'கோவைப்புதூர்' :
+            rawArea.includes('Thudiyalur') ? 'துடியலூர்' :
+            rawArea.includes('Ukkadam') ? 'உக்கடம்' :
+            rawArea.includes('Podanur') ? 'போத்தனூர்' :
+            rawArea.includes('Kuniamuthur') ? 'குனியமுத்தூர்' :
+            rawArea.includes('Sundarapuram') ? 'சுந்தராபுரம்' : rawArea
+          ) : rawArea;
+
+          return (
+            <div key={issue.id} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="font-semibold text-slate-900">{translatedInfo.title}</div>
+                  <div className="mt-1 text-sm text-slate-500">{translatedArea} • {translatedCategory}</div>
+                </div>
+                <div className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColors[issue.status] || 'bg-slate-100 text-slate-700'}`}>
+                  {showTamil ? (
+                    issue.status === 'Pending' ? 'நிலுவையில்' :
+                    issue.status === 'In Progress' ? 'செயல்பாட்டில்' :
+                    issue.status === 'Completed' ? 'முடிக்கப்பட்டது' :
+                    issue.status === 'Escalated' ? 'உயர்மட்டப் புகார்' : issue.status
+                  ) : issue.status}
+                </div>
               </div>
-              <div className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColors[issue.status] || 'bg-slate-100 text-slate-700'}`}>{issue.status}</div>
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                <div className="text-sm text-slate-500">
+                  {issue.verifications?.length || 0} {showTamil ? 'பொது உறுதிப்படுத்தல்கள்' : 'public confirmations'}
+                </div>
+                <button 
+                  disabled={isVerifying === issue.id}
+                  className="rounded-full bg-[#0f4f3a] disabled:opacity-50 px-4 py-2 text-sm font-semibold text-white flex items-center gap-2 transition duration-150 cursor-pointer" 
+                  onClick={() => void handleNearbyVerify(issue.id)}
+                >
+                  {isVerifying === issue.id ? (
+                    <>
+                      <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      <span>{showTamil ? 'சரிபார்க்கிறது...' : 'Verifying...'}</span>
+                    </>
+                  ) : (
+                    showTamil ? 'இப்போது சரிபார்' : 'Verify now'
+                  )}
+                </button>
+              </div>
             </div>
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              <div className="text-sm text-slate-500">{issue.verifications?.length || 0} public confirmations</div>
-              <button className="rounded-full bg-[#0f4f3a] px-4 py-2 text-sm font-semibold text-white" onClick={() => void handleNearbyVerify(issue.id)}>Verify now</button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -2003,14 +2234,71 @@ export default function AppNew() {
           <div className="grid gap-6 md:grid-cols-2">
             {pagedIssues.map((issue) => {
               const matchesStatusColor = statusColors[issue.status] || 'bg-slate-100 text-slate-700';
+              const translatedInfo = translateTitleAndDesc(issue.title, issue.description);
+              
+              const translatedCategory = showTamil ? (
+                issue.category === 'Road Damage' ? 'சாலை சேதம்' :
+                issue.category === 'Water Leakage' ? 'குடிநீர் கசிவு' :
+                issue.category === 'Sewage Overflow' ? 'கழிவுநீர் வழிந்தோடல்' :
+                issue.category === 'Garbage Overflow' ? 'குப்பை குவிதல்' :
+                issue.category === 'Streetlight Failure' ? 'தெருவிளக்கு பழுது' : issue.category
+              ) : issue.category;
+
+              const translatedZone = showTamil ? (
+                issue.zone === 'Central Zone' ? 'மத்திய மண்டலம்' :
+                issue.zone === 'East Zone' ? 'கிழக்கு மண்டலம்' :
+                issue.zone === 'West Zone' ? 'மேற்கு மண்டலம்' :
+                issue.zone === 'North Zone' ? 'வடக்கு மண்டலம்' :
+                issue.zone === 'South Zone' ? 'தெற்கு மண்டலம்' : issue.zone
+              ) : issue.zone;
+
+              const rawArea = issue.area || issue.location.split(',')[0];
+              const translatedArea = showTamil ? (
+                rawArea.includes('Gandhipuram') ? 'காந்திபுரம்' :
+                rawArea.includes('Saravanampatti') ? 'சரவணம்பட்டி' :
+                rawArea.includes('Mettupalayam Road') ? 'மேட்டுப்பாளையம் சாலை' :
+                rawArea.includes('Peelamedu') ? 'பீளமேடு' :
+                rawArea.includes('R.S. Puram') ? 'ஆர்.எஸ். புரம்' :
+                rawArea.includes('Vadavalli') ? 'வடவள்ளி' :
+                rawArea.includes('Singanallur') ? 'சிங்காநல்லூர்' :
+                rawArea.includes('Kovaipudur') ? 'கோவைப்புதூர்' :
+                rawArea.includes('Thudiyalur') ? 'துடியலூர்' :
+                rawArea.includes('Ukkadam') ? 'உக்கடம்' :
+                rawArea.includes('Podanur') ? 'போத்தனூர்' :
+                rawArea.includes('Kuniamuthur') ? 'குனியமுத்தூர்' :
+                rawArea.includes('Sundarapuram') ? 'சுந்தராபுரம்' : rawArea
+              ) : rawArea;
+
+              const translatedReporter = showTamil ? (
+                issue.reporterName === 'Yeswanth kumar D.' ? 'யெஸ்வந்த் குமார் D.' :
+                issue.reporterName === 'Vignesh Kumar' ? 'விக்னேஷ் குமார்' :
+                issue.reporterName === 'K. Meenakshi' ? 'கே. மீனாட்சி' :
+                issue.reporterName === 'Arun Kumar' ? 'அருண் குமார்' :
+                issue.reporterName === 'D. Maheshwari' ? 'டி. மகேஸ்வரி' :
+                issue.reporterName === 'S. Karthikeyan' ? 'எஸ். கார்த்திகேயன்' :
+                issue.reporterName === 'M. Revathi' ? 'எம். ரேவதி' :
+                issue.reporterName === 'Anitha Raj' ? 'அனிதா ராஜ்' : issue.reporterName
+              ) : issue.reporterName;
+
+              const alreadyUpvoted = upvotedIssues.includes(issue.id);
+
               return (
                 <div key={issue.id} className="rounded-3xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:shadow-md transition duration-300 flex flex-col justify-between">
                   <div>
                     {issue.beforeImg && (
                       <div className="h-44 w-full relative">
-                        <img src={issue.beforeImg} alt="complaint" className="w-full h-full object-cover" />
+                        <img 
+                          src={issue.beforeImg} 
+                          alt="complaint" 
+                          className="w-full h-full object-cover" 
+                          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = getCategoryDefaultImage(issue.category); }} 
+                        />
                         <span className={`absolute top-3 right-3 rounded-full px-2.5 py-1 text-[10px] font-bold ${issue.severity === 'Critical' || issue.severity === 'High' ? 'bg-rose-600 text-white shadow' : 'bg-slate-900 text-white shadow'}`}>
-                          {issue.severity === 'Critical' ? (showTamil ? 'அதிமுக்கியம்' : 'Critical') : issue.severity}
+                          {showTamil ? (
+                            issue.severity === 'Critical' ? 'அதிமுக்கியம்' :
+                            issue.severity === 'High' ? 'அதிக முன்னுரிமை' :
+                            issue.severity === 'Medium' ? 'நடுத்தர முன்னுரிமை' : 'குறைந்த முன்னுரிமை'
+                          ) : issue.severity}
                         </span>
                       </div>
                     )}
@@ -2018,7 +2306,7 @@ export default function AppNew() {
                     <div className="p-5 space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] font-bold uppercase text-[#0f4f3a] tracking-wider bg-emerald-50 px-2.5 py-1 rounded-full">
-                          {issue.category}
+                          {translatedCategory}
                         </span>
                         <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${matchesStatusColor}`}>
                           {showTamil ? (
@@ -2030,21 +2318,21 @@ export default function AppNew() {
                         </span>
                       </div>
 
-                      <h3 className="text-lg font-extrabold text-slate-900 line-clamp-1">{issue.title}</h3>
-                      <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{issue.description}</p>
+                      <h3 className="text-lg font-extrabold text-slate-900 line-clamp-1">{translatedInfo.title}</h3>
+                      <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{translatedInfo.desc}</p>
                       
                       <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-500 pt-3 border-t border-slate-100">
                         <div>
-                          <strong>{showTamil ? "மண்டலம்:" : "Zone:"}</strong> {issue.zone}
+                          <strong>{showTamil ? "மண்டலம்:" : "Zone:"}</strong> {translatedZone}
                         </div>
                         <div>
-                          <strong>{showTamil ? "வட்டம் / பகுதி:" : "Area:"}</strong> {issue.area || issue.location.split(',')[0]}
+                          <strong>{showTamil ? "வட்டம் / பகுதி:" : "Area:"}</strong> {translatedArea}
                         </div>
                         <div>
                           <strong>{showTamil ? "பதிவு எண்:" : "ID:"}</strong> #{issue.id}
                         </div>
                         <div>
-                          <strong>{showTamil ? "பதிவு செய்தவர்:" : "Reporter:"}</strong> {issue.reporterName}
+                          <strong>{showTamil ? "பதிவு செய்தவர்:" : "Reporter:"}</strong> {translatedReporter}
                         </div>
                       </div>
                     </div>
@@ -2055,12 +2343,25 @@ export default function AppNew() {
                     <div className="flex items-center gap-3">
                       <button 
                         onClick={() => {
-                          const updated = issues.map(item => item.id === issue.id ? { ...item, upvotes: (item.upvotes || 0) + 1 } : item);
+                          const alreadyUpvoted = upvotedIssues.includes(issue.id);
+                          let updatedUpvotes = issue.upvotes || 0;
+                          let nextUpvotedList = [...upvotedIssues];
+                          if (alreadyUpvoted) {
+                            updatedUpvotes = Math.max(0, updatedUpvotes - 1);
+                            nextUpvotedList = nextUpvotedList.filter(id => id !== issue.id);
+                            setMessage({ type: 'success', text: showTamil ? 'உங்கள் ஆதரவு வாக்கு திரும்பப் பெறப்பட்டது!' : 'Upvote removed!' });
+                          } else {
+                            updatedUpvotes = updatedUpvotes + 1;
+                            nextUpvotedList.push(issue.id);
+                            setMessage({ type: 'success', text: showTamil ? 'உங்கள் ஆதரவு வாக்கு பதிவு செய்யப்பட்டது!' : 'Upvote registered successfully!' });
+                          }
+                          setUpvotedIssues(nextUpvotedList);
+                          localStorage.setItem('civiceye_upvoted_issues', JSON.stringify(nextUpvotedList));
+                          const updated = issues.map(item => item.id === issue.id ? { ...item, upvotes: updatedUpvotes } : item);
                           setIssues(updated);
                           localStorage.setItem('civiceye_complaints', JSON.stringify(updated));
-                          setMessage({ type: 'success', text: showTamil ? 'உங்கள் ஆதரவு வாக்கு பதிவு செய்யப்பட்டது!' : 'Upvote registered successfully!' });
                         }}
-                        className="flex items-center gap-1.5 text-xs text-[#0f4f3a] font-semibold hover:bg-[#0f4f3a]/10 p-1.5 rounded-xl transition cursor-pointer"
+                        className={`flex items-center gap-1.5 text-xs font-semibold p-1.5 rounded-xl transition cursor-pointer ${alreadyUpvoted ? 'bg-[#0f4f3a]/20 text-[#0f4f3a]' : 'text-slate-600 hover:bg-slate-200'}`}
                         title="Upvote Complaint"
                       >
                         👍 {issue.upvotes || 0}
@@ -2331,8 +2632,18 @@ export default function AppNew() {
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <span className="text-xs font-semibold uppercase tracking-wider text-[#0f4f3a]">{issue.category}</span>
-              <h2 className="text-2xl font-black text-slate-900 mt-1">{issue.title}</h2>
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#0f4f3a]">
+                {showTamil ? (
+                  issue.category === 'Road Damage' ? 'சாலை சேதம்' :
+                  issue.category === 'Water Leakage' ? 'குடிநீர் கசிவு' :
+                  issue.category === 'Sewage Overflow' ? 'கழிவுநீர் வழிந்தோடல்' :
+                  issue.category === 'Garbage Overflow' ? 'குப்பை குவிதல்' :
+                  issue.category === 'Streetlight Failure' ? 'தெருவிளக்கு பழுது' : issue.category
+                ) : issue.category}
+              </span>
+              <h2 className="text-2xl font-black text-slate-900 mt-1">
+                {showTamil ? translateTitleAndDesc(issue.title, '').title : issue.title}
+              </h2>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -2350,47 +2661,92 @@ export default function AppNew() {
                 </svg>
                 {showTamil ? 'வாட்ஸ்அப்பில் பகிர்க' : 'WhatsApp Share'}
               </button>
-              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColors[issue.status] || 'bg-slate-100 text-slate-700'}`}>{issue.status}</span>
-              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${issue.severity === 'Critical' || issue.severity === 'High' ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-700'}`}>{issue.severity} severity</span>
+              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColors[issue.status] || 'bg-slate-100 text-slate-700'}`}>
+                {showTamil ? (
+                  issue.status === 'Pending' ? 'நிலுவையில்' :
+                  issue.status === 'In Progress' ? 'செயல்பாட்டில்' :
+                  issue.status === 'Completed' ? 'முடிக்கப்பட்டது' :
+                  issue.status === 'Escalated' ? 'உயர்மட்டப் புகார்' : issue.status
+                ) : issue.status}
+              </span>
+              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${issue.severity === 'Critical' || issue.severity === 'High' ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-700'}`}>
+                {showTamil ? (
+                  issue.severity === 'Critical' ? 'அதிமுக்கியம்' :
+                  issue.severity === 'High' ? 'அதிக முன்னுரிமை' :
+                  issue.severity === 'Medium' ? 'நடுத்தர முன்னுரிமை' : 'குறைந்த முன்னுரிமை'
+                ) : `${issue.severity} severity`}
+              </span>
             </div>
           </div>
-          <p className="mt-4 text-slate-600 leading-relaxed">{issue.description}</p>
+          <p className="mt-4 text-slate-600 leading-relaxed">
+            {showTamil ? translateTitleAndDesc(issue.title, issue.description).desc : issue.description}
+          </p>
         </div>
 
         {/* Image comparative layout as requested by Rule 2 */}
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h3 className="text-lg font-bold text-slate-900">Before fixing (Evidence)</h3>
-            <p className="text-xs text-slate-500 mt-1">Uploaded by citizen at filing time</p>
-            {issue.beforeImg ? (
-              <img src={issue.beforeImg} alt="before" className="mt-4 h-64 w-full rounded-2xl object-cover border border-slate-100 shadow-sm" />
-            ) : (
-              <div className="mt-4 flex h-64 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-slate-400 text-sm">
-                No image evidence provided.
-              </div>
-            )}
-          </div>
-
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h3 className="text-lg font-bold text-slate-900">After fixing (Remediation)</h3>
-            <p className="text-xs text-slate-500 mt-1">Uploaded by field officer upon completion</p>
-            {issue.status === 'Completed' ? (
-              issue.afterImg ? (
-                <img src={issue.afterImg} alt="after" className="mt-4 h-64 w-full rounded-2xl object-cover border border-slate-100 shadow-sm" />
+        {issue.status !== 'Completed' ? (
+          <div className="space-y-4">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h3 className="text-lg font-bold text-slate-900">Before fixing (Evidence)</h3>
+              <p className="text-xs text-slate-500 mt-1">Uploaded by citizen at filing time</p>
+              {issue.beforeImg ? (
+                <img src={issue.beforeImg} alt="before" className="mt-4 h-96 w-full rounded-2xl object-cover border border-slate-100 shadow-sm" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = getCategoryDefaultImage(issue.category); }} />
               ) : (
                 <div className="mt-4 flex h-64 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-slate-400 text-sm">
-                  No completion image available.
+                  No image evidence provided.
                 </div>
-              )
-            ) : (
-              <div className="mt-4 flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
-                <span className="text-4xl animate-pulse">🚧</span>
-                <p className="mt-3 text-sm font-semibold text-slate-700">Completion image will be available after issue is fixed.</p>
-                <p className="mt-1 text-xs text-slate-400 font-medium">Municipal field crew is working on resolving this issue.</p>
+              )}
+              <div className="mt-4 text-sm font-semibold text-amber-700 bg-amber-50 rounded-2xl p-4 border border-amber-100 flex items-center gap-2">
+                <span>🚧</span>
+                <span>Work in progress. Completion image will appear after issue is fixed.</span>
               </div>
-            )}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="text-lg font-bold text-slate-900">Before fixing (Evidence)</h3>
+                <p className="text-xs text-slate-500 mt-1">Uploaded by citizen at filing time</p>
+                {issue.beforeImg ? (
+                  <img src={issue.beforeImg} alt="before" className="mt-4 h-64 w-full rounded-2xl object-cover border border-slate-100 shadow-sm" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = getCategoryDefaultImage(issue.category); }} />
+                ) : (
+                  <div className="mt-4 flex h-64 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-slate-400 text-sm">
+                    No image evidence provided.
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="text-lg font-bold text-slate-900">After fixing (Remediation)</h3>
+                <p className="text-xs text-slate-500 mt-1">Uploaded by field officer upon completion</p>
+                {issue.afterImg ? (
+                  <img src={issue.afterImg} alt="after" className="mt-4 h-64 w-full rounded-2xl object-cover border border-slate-100 shadow-sm" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = getCategoryDefaultImage(issue.category); }} />
+                ) : (
+                  <div className="mt-4 flex h-64 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-slate-400 text-sm">
+                    No completion image available.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-emerald-50/50 p-6 shadow-sm space-y-4">
+              <h3 className="text-lg font-bold text-[#0f4f3a]">Resolution details</h3>
+              <div className="space-y-3">
+                <div>
+                  <span className="text-xs text-slate-500 block uppercase font-semibold">Officer remarks</span>
+                  <p className="mt-1 text-slate-800 font-medium text-sm bg-white rounded-xl p-3 border border-slate-100">{issue.remarks || issue.reasoning || 'Work completed successfully.'}</p>
+                </div>
+                {issue.completedAt && (
+                  <div>
+                    <span className="text-xs text-slate-500 block uppercase font-semibold">Completion timestamp</span>
+                    <p className="mt-1 text-slate-800 font-mono text-sm bg-white rounded-xl p-3 border border-slate-100">{new Date(issue.completedAt).toLocaleString()}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* AI Dispatch Analysis */}
@@ -2481,8 +2837,8 @@ export default function AppNew() {
                     avatar = matchedAccount.avatar;
                   } else {
                     // Match default profiles for pre-seeded comments
-                    if (name.includes('Prakash')) {
-                      avatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
+                    if (name.toLowerCase().includes('yeswanth') || name.toLowerCase().includes('prakash')) {
+                      avatar = '/images/yeswanth_profile.jpg';
                     } else if (name.includes('Ganeshan')) {
                       avatar = 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&q=80';
                     } else if (name.includes('Meenakshi')) {
@@ -2861,192 +3217,8 @@ export default function AppNew() {
               {message.text}
             </div>
           )}
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-slate-100 p-2">
-                <Search size={18} className="text-slate-700" />
-              </div>
-              <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-56 rounded-full border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#0f4f3a]" placeholder="Search complaints..." />
-            </div>
-            
-            <div className="flex flex-wrap items-center gap-2">
-              {/* Sort By Dropdown */}
-              <label className="flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium bg-slate-50 text-slate-700">
-                <span className="text-[10px] uppercase text-slate-400 font-bold">Sort</span>
-                <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="bg-transparent outline-none cursor-pointer font-semibold text-slate-800">
-                  <option value="newest">Newest First</option>
-                  <option value="oldest">Oldest First</option>
-                  <option value="upvotes">Most Upvoted</option>
-                  <option value="severity">Critical Severity</option>
-                  <option value="deadline">Closest SLA Deadline</option>
-                </select>
-              </label>
-
-              {/* Status Filter */}
-              <label className="flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium bg-slate-50 text-slate-700">
-                <span className="text-[10px] uppercase text-slate-400 font-bold">Status</span>
-                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-transparent outline-none cursor-pointer font-semibold text-slate-800">
-                  <option value="All">All Status</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Verified">Verified</option>
-                  <option value="Assigned">Assigned</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Escalated">Escalated</option>
-                </select>
-              </label>
-
-              {/* Category Filter */}
-              <label className="flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium bg-slate-50 text-slate-700">
-                <span className="text-[10px] uppercase text-slate-400 font-bold">Category</span>
-                <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="bg-transparent outline-none cursor-pointer font-semibold text-slate-800">
-                  <option value="All">All Categories</option>
-                  <option value="Road Damage">Road damage</option>
-                  <option value="Water Leakage">Water leakage</option>
-                  <option value="Sewage Overflow">Sewage overflow</option>
-                  <option value="Garbage Overflow">Garbage overflow</option>
-                  <option value="Streetlight failure">Streetlight failure</option>
-                  <option value="Drain blockage">Drain blockage</option>
-                  <option value="Illegal dumping">Illegal dumping</option>
-                  <option value="Broken signal">Broken signal</option>
-                  <option value="Tree fall">Tree fall</option>
-                  <option value="Public toilet issue">Public toilet issue</option>
-                </select>
-              </label>
-
-              {/* Zone Filter */}
-              <label className="flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium bg-slate-50 text-slate-700">
-                <span className="text-[10px] uppercase text-slate-400 font-bold">Zone</span>
-                <select value={zoneFilter} onChange={(e) => setZoneFilter(e.target.value)} className="bg-transparent outline-none cursor-pointer font-semibold text-slate-800">
-                  <option value="All">All Zones</option>
-                  <option value="Central Zone">Central Zone</option>
-                  <option value="East Zone">East Zone</option>
-                  <option value="West Zone">West Zone</option>
-                  <option value="North Zone">North Zone</option>
-                  <option value="South Zone">South Zone</option>
-                </select>
-              </label>
-
-              {/* Urgency Filter */}
-              <label className="flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium bg-slate-50 text-slate-700">
-                <span className="text-[10px] uppercase text-slate-400 font-bold">Urgency</span>
-                <select value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)} className="bg-transparent outline-none cursor-pointer font-semibold text-slate-800">
-                  <option value="All">All Urgency</option>
-                  <option value="Low">Low</option>
-                  <option value="Medium">Medium</option>
-                  <option value="High">High</option>
-                  <option value="Critical">Critical</option>
-                </select>
-              </label>
-
-              {/* Department Filter */}
-              <label className="flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium bg-slate-50 text-slate-700">
-                <span className="text-[10px] uppercase text-slate-400 font-bold">Dept</span>
-                <select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)} className="bg-transparent outline-none cursor-pointer font-semibold text-slate-800">
-                  <option value="All">All Departments</option>
-                  <option value="Water Supply">Water Supply</option>
-                  <option value="Roads">Roads</option>
-                  <option value="Sanitation">Sanitation</option>
-                  <option value="Streetlights">Streetlights</option>
-                  <option value="Sewage">Sewage</option>
-                  <option value="Public Health">Public Health</option>
-                </select>
-              </label>
-            </div>
-          </div>
           {loading ? <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">Loading civic data...</div> : renderContent()}
         </main>
-      </div>
-
-      {/* CivicAI Floating Assistant */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
-        {isChatOpen ? (
-          <div className={`mb-4 w-80 sm:w-96 rounded-2xl border overflow-hidden flex flex-col h-[450px] ${isAccessible ? 'bg-[#1E1E1E] border-[#2C2C2C] text-white shadow-none' : 'bg-white border-slate-200 text-slate-800 shadow-2xl'}`}>
-            {/* Header */}
-            <div className={`p-4 flex items-center justify-between ${isAccessible ? 'bg-[#2563EB] text-white' : 'bg-[#0f4f3a] text-white'}`}>
-              <div className="flex items-center gap-2">
-                <Bot className="animate-pulse" />
-                <div>
-                  <h4 className="text-sm font-bold">CivicAI Assistant</h4>
-                  <p className={`text-[10px] ${isAccessible ? 'text-zinc-200' : 'text-emerald-300'}`}>Coimbatore City Municipal Corp</p>
-                </div>
-              </div>
-              <button onClick={() => setIsChatOpen(false)} className="text-white hover:opacity-80">
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Messages */}
-            <div className={`flex-1 p-4 overflow-y-auto space-y-3 text-xs ${isAccessible ? 'bg-[#121212]' : 'bg-slate-50'}`}>
-              {chatMessages.map((msg, idx) => (
-                <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] rounded-xl px-3 py-2 ${msg.sender === 'user' ? (isAccessible ? 'bg-[#2563EB] text-white' : 'bg-[#0f4f3a] text-white') : (isAccessible ? 'bg-[#1E1E1E] border border-[#2C2C2C] text-white' : 'bg-white border border-slate-200 text-slate-800')}`}>
-                    <p className="whitespace-pre-wrap">{msg.text}</p>
-                    {msg.action && (
-                      <button 
-                        onClick={() => { setActiveView(msg.action as ViewKey); setIsChatOpen(false); }}
-                        className={`mt-2 block w-full text-center rounded py-1 font-bold text-[10px] ${isAccessible ? 'bg-[#2C2C2C] hover:bg-[#3D3D3D] text-[#2563EB]' : 'bg-slate-100 hover:bg-slate-200 text-[#0f4f3a]'}`}
-                      >
-                        {showTamil ? 'பக்கத்தைத் திறக்கவும்' : 'Open designated page'}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-              {isChatLoading && (
-                <div className="flex justify-start">
-                  <div className={`border rounded-xl px-3 py-2 flex items-center gap-2 ${isAccessible ? 'bg-[#1E1E1E] border-[#2C2C2C] text-slate-300' : 'bg-white border-slate-200 text-slate-500'}`}>
-                    {/* Bouncing dots spinner */}
-                    <div className="flex space-x-1">
-                      <div className={`w-1.5 h-1.5 rounded-full animate-bounce ${isAccessible ? 'bg-[#2563EB]' : 'bg-emerald-600'}`} style={{ animationDelay: '0ms' }} />
-                      <div className={`w-1.5 h-1.5 rounded-full animate-bounce ${isAccessible ? 'bg-[#2563EB]' : 'bg-emerald-600'}`} style={{ animationDelay: '150ms' }} />
-                      <div className={`w-1.5 h-1.5 rounded-full animate-bounce ${isAccessible ? 'bg-[#2563EB]' : 'bg-emerald-600'}`} style={{ animationDelay: '300ms' }} />
-                    </div>
-                    <span>{showTamil ? 'சிவிக்கேஐ தட்டச்சு செய்கிறது...' : 'CivicAI is typing...'}</span>
-                  </div>
-                </div>
-              )}
-              {chatError && (
-                <div className={`flex justify-center p-2 border rounded-xl text-[11px] items-center gap-2 ${isAccessible ? 'bg-[#1E1E1E] border-[#EF4444] text-[#EF4444]' : 'bg-red-50 border-red-200 text-red-700'}`}>
-                  <span>{showTamil ? 'இணைப்பு பிழை ஏற்பட்டது.' : 'Connection error.'}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleSendChatMessage(undefined, lastUserMessage)}
-                    className={`underline font-bold hover:opacity-85 ${isAccessible ? 'text-red-400' : 'text-red-900'}`}
-                  >
-                    {showTamil ? 'மீண்டும் முயற்சிக்குக' : 'Retry'}
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Input form */}
-            <form onSubmit={handleSendChatMessage} className={`p-3 border-t flex gap-2 ${isAccessible ? 'bg-[#1E1E1E] border-[#2C2C2C]' : 'bg-white border-slate-200'}`}>
-              <input 
-                type="text" 
-                value={chatInput} 
-                onChange={(e) => setChatInput(e.target.value)}
-                placeholder={showTamil ? 'கேள்வி கேளுங்கள்...' : 'Ask a question about guidelines/policy...'}
-                className={`flex-1 border rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-1 ${isAccessible ? 'bg-[#121212] border-[#2C2C2C] text-white focus:border-[#2563EB] focus:ring-[#2563EB]' : 'bg-white border-slate-200 text-slate-900 focus:border-[#0f4f3a] focus:ring-[#0f4f3a]'}`}
-              />
-              <button 
-                type="submit" 
-                disabled={isChatLoading}
-                className={`rounded-xl px-3 py-1.5 text-xs font-bold disabled:opacity-50 transition ${isAccessible ? 'bg-[#2563EB] hover:bg-blue-700 text-white' : 'bg-[#0f4f3a] hover:bg-[#125d45] text-white'}`}
-              >
-                Send
-              </button>
-            </form>
-          </div>
-        ) : (
-          <button 
-            onClick={() => setIsChatOpen(true)}
-            className={`flex items-center gap-2 p-3.5 rounded-full shadow-2xl transition-all scale-100 hover:scale-105 ${isAccessible ? 'bg-[#2563EB] hover:bg-blue-700 text-white' : 'bg-[#0f4f3a] hover:bg-[#125d45] text-white'}`}
-          >
-            <Bot size={22} className="animate-pulse" />
-            <span className="text-xs font-bold hidden sm:inline">CivicAI</span>
-          </button>
-        )}
       </div>
     </div>
   );

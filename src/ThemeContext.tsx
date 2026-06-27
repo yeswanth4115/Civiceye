@@ -33,15 +33,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const root = document.documentElement;
     if (isAccessible) {
       root.classList.add("is-accessible");
-      // Read out announcement for accessibility screen readers
-      const utterance = new SpeechSynthesisUtterance("Accessibility mode activated. Uniform high contrast theme loaded.");
-      utterance.lang = "en-US";
-      window.speechSynthesis?.speak(utterance);
     } else {
       root.classList.remove("is-accessible");
-      const utterance = new SpeechSynthesisUtterance("Accessibility mode deactivated.");
-      utterance.lang = "en-US";
-      window.speechSynthesis?.speak(utterance);
     }
   }, [isAccessible]);
 

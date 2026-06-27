@@ -12,7 +12,7 @@ export const COIMBATORE_ZONES = [
 export const MOCKED_CITIZENS: VerifiedCitizen[] = [
   {
     uid: "cit-101",
-    name: "R. Prakash",
+    name: "Yeswanth kumar D.",
     idType: "Aadhaar",
     idNumberMasked: "XXXX-XXXX-8921",
     ocrExtractedAddress: "14, Sathy Road, Gandhipuram, Coimbatore - 641012",
@@ -20,7 +20,7 @@ export const MOCKED_CITIZENS: VerifiedCitizen[] = [
     isFraudDetected: false,
     faceMatchScore: 94.2,
     isVerified: true,
-    avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80"
+    avatarUrl: "/images/yeswanth_profile.jpg"
   },
   {
     uid: "cit-102",
@@ -96,11 +96,11 @@ const AREAS_INFO = [
 ];
 
 const CATEGORIES_INFO = [
-  { category: "Road Damage" as const, department: "Road", title: "Severe Potholes and Road Crack", desc: "Large crater and deep potholes on the main transit lane, causing severe risk of bike skid accidents and heavy traffic delay during peak hours.", before: "/images/road/road_damage_default.jpg", after: "/images/completed/road_fixed_default.jpg" },
-  { category: "Water Leakage" as const, department: "Water", title: "Potable Underground Pipeline Leakage", desc: "Main potable water supply pipe leakage detected. Thousands of liters of pure drinking water are being wasted and flooding the surrounding pavements.", before: "/images/water/water_leak_default.jpg", after: "/images/completed/water_fixed_default.jpg" },
-  { category: "Garbage Overflow" as const, department: "Sewage", title: "Overflowing Public Waste Dustbin", desc: "Public waste bins are completely overflowing. Garbage has spread on the road for the last three days causing terrible stench, stray dog hazard, and flies.", before: "/images/garbage/garbage_default.jpg", after: "/images/completed/garbage_fixed_default.jpg" },
-  { category: "Streetlight Failure" as const, department: "Electricity", title: "Complete Streetlight Segment Outage", desc: "Multiple consecutive municipal streetlights are not working, casting the entire residential road in total darkness and raising severe safety concerns at night.", before: "/images/streetlight/streetlight_default.jpg", after: "/images/completed/streetlight_fixed_default.jpg" },
-  { category: "Sewage Overflow" as const, department: "Sewage", title: "Open Sewage Drain Block and Overflow", desc: "Domestic sewage line is clogged, causing raw contaminated wastewater to overflow into the street and residential pathways. Extremely hazardous public health threat.", before: "/images/sewage/sewage_default.jpg", after: "/images/completed/sewage_fixed_default.jpg" }
+  { category: "Road Damage" as const, department: "Road", title: "Severe Potholes and Road Crack", desc: "Large crater and deep potholes on the main transit lane, causing severe risk of bike skid accidents and heavy traffic delay during peak hours.", before: "/images/road/road_damage_default.jpeg", after: "/images/completed/road_fixed_default.jpeg" },
+  { category: "Water Leakage" as const, department: "Water", title: "Potable Underground Pipeline Leakage", desc: "Main potable water supply pipe leakage detected. Thousands of liters of pure drinking water are being wasted and flooding the surrounding pavements.", before: "/images/water_before.jpg", after: "/images/water_after.jpg" },
+  { category: "Garbage Overflow" as const, department: "Sewage", title: "Overflowing Public Waste Dustbin", desc: "Public waste bins are completely overflowing. Garbage has spread on the road for the last three days causing terrible stench, stray dog hazard, and flies.", before: "/images/completed/garbage_fixed_ukkadam.jpg", after: "/images/completed/garbage_fixed_default.jpg" },
+  { category: "Streetlight Failure" as const, department: "Electricity", title: "Complete Streetlight Segment Outage", desc: "Multiple consecutive municipal streetlights are not working, casting the entire residential road in total darkness and raising severe safety concerns at night.", before: "/images/streetlight_before.jpg", after: "/images/streetlight_after.jpg" },
+  { category: "Sewage Overflow" as const, department: "Sewage", title: "Open Sewage Drain Block and Overflow", desc: "Domestic sewage line is clogged, causing raw contaminated wastewater to overflow into the street and residential pathways. Extremely hazardous public health threat.", before: "/images/sewage_before.jpg", after: "/images/sewage_after.jpg" }
 ];
 
 export const COIMBATORE_OFFICERS = [
@@ -116,7 +116,7 @@ export const COIMBATORE_OFFICERS = [
 ];
 
 const CITIZENS_POOL = [
-  { name: "R. Prakash", id: "cit-101" },
+  { name: "Yeswanth kumar D.", id: "cit-101" },
   { name: "Vignesh Kumar", id: "cit-102" },
   { name: "K. Meenakshi", id: "cit-103" },
   { name: "Arun Kumar", id: "cit-104" },
@@ -126,125 +126,71 @@ const CITIZENS_POOL = [
   { name: "Anitha Raj", id: "cit-108" }
 ];
 
+export const getCategoryDefaultImage = (category: string): string => {
+  const normalized = (category || '').trim().toLowerCase();
+  if (normalized.includes("road")) {
+    return "/images/road/road_damage_default.jpeg";
+  }
+  if (normalized.includes("water")) {
+    return "/images/water_before.jpg";
+  }
+  if (normalized.includes("sewage")) {
+    return "/images/sewage_before.jpg";
+  }
+  if (normalized.includes("streetlight") || normalized.includes("light")) {
+    return "/images/streetlight_before.jpg";
+  }
+  if (normalized.includes("garbage") || normalized.includes("dumping") || normalized.includes("waste")) {
+    return "/images/completed/garbage_fixed_ukkadam.jpg";
+  }
+  return "/images/road_before.jpg";
+};
+
 export const getIssueImages = (category: string, area: string, isCompleted: boolean) => {
   const normArea = area.toLowerCase().replace(/\s+/g, '');
   
   if (category === "Road Damage") {
-    if (normArea.includes("gandhipuram")) {
-      return {
-        before: "/images/road/road_damage_gandhipuram.jpg",
-        after: isCompleted ? "/images/completed/road_fixed_gandhipuram.jpg" : undefined
-      };
-    }
-    if (normArea.includes("rspuram")) {
-      return {
-        before: "/images/road/road_damage_rspuram.jpg",
-        after: isCompleted ? "/images/completed/road_fixed_rspuram.jpg" : undefined
-      };
-    }
-    if (normArea.includes("peelamedu")) {
-      return {
-        before: "/images/road/road_damage_peelamedu.jpg",
-        after: isCompleted ? "/images/completed/road_fixed_peelamedu.jpg" : undefined
-      };
-    }
-    if (normArea.includes("saibaba")) {
-      return {
-        before: "/images/road/road_damage_saibaba.jpg",
-        after: isCompleted ? "/images/completed/road_fixed_saibaba.jpg" : undefined
-      };
-    }
     return {
-      before: "/images/road/road_damage_default.jpg",
-      after: isCompleted ? "/images/completed/road_fixed_default.jpg" : undefined
+      before: "/images/road/road_damage_default.jpeg",
+      after: isCompleted ? "/images/completed/road_fixed_default.jpeg" : undefined
     };
   }
 
   if (category === "Water Leakage") {
-    if (normArea.includes("rspuram")) {
-      return {
-        before: "/images/water/water_leak_rspuram.jpg",
-        after: isCompleted ? "/images/completed/water_fixed_rspuram.jpg" : undefined
-      };
-    }
-    if (normArea.includes("vadavalli")) {
-      return {
-        before: "/images/water/water_leak_vadavalli.jpg",
-        after: isCompleted ? "/images/completed/water_fixed_vadavalli.jpg" : undefined
-      };
-    }
-    if (normArea.includes("gandhipuram")) {
-      return {
-        before: "/images/water/water_leak_gandhipuram.jpg",
-        after: isCompleted ? "/images/completed/water_fixed_gandhipuram.jpg" : undefined
-      };
-    }
     return {
-      before: "/images/water/water_leak_default.jpg",
-      after: isCompleted ? "/images/completed/water_fixed_default.jpg" : undefined
+      before: "/images/water_before.jpg",
+      after: isCompleted ? "/images/water_after.jpg" : undefined
     };
   }
 
   if (category === "Garbage Overflow") {
-    if (normArea.includes("ukkadam")) {
-      return {
-        before: "/images/garbage/garbage_ukkadam.jpg",
-        after: isCompleted ? "/images/completed/garbage_fixed_ukkadam.jpg" : undefined
-      };
-    }
+    let afterImg = "/images/completed/garbage_fixed_default.jpg";
     if (normArea.includes("podanur")) {
-      return {
-        before: "/images/garbage/garbage_podanur.jpg",
-        after: isCompleted ? "/images/completed/garbage_fixed_podanur.jpg" : undefined
-      };
+      afterImg = "/images/completed/garbage_fixed_podanur.jpg";
     }
     return {
-      before: "/images/garbage/garbage_default.jpg",
-      after: isCompleted ? "/images/completed/garbage_fixed_default.jpg" : undefined
+      before: "/images/completed/garbage_fixed_ukkadam.jpg",
+      after: isCompleted ? afterImg : undefined
     };
   }
 
   if (category === "Streetlight Failure") {
-    if (normArea.includes("peelamedu")) {
-      return {
-        before: "/images/streetlight/streetlight_peelamedu.jpg",
-        after: isCompleted ? "/images/completed/streetlight_fixed_peelamedu.jpg" : undefined
-      };
-    }
-    if (normArea.includes("kuniamuthur")) {
-      return {
-        before: "/images/streetlight/streetlight_kuniamuthur.jpg",
-        after: isCompleted ? "/images/completed/streetlight_fixed_kuniamuthur.jpg" : undefined
-      };
-    }
     return {
-      before: "/images/streetlight/streetlight_default.jpg",
-      after: isCompleted ? "/images/completed/streetlight_fixed_default.jpg" : undefined
+      before: "/images/streetlight_before.jpg",
+      after: isCompleted ? "/images/streetlight_after.jpg" : undefined
     };
   }
 
   if (category === "Sewage Overflow") {
-    if (normArea.includes("singanallur")) {
-      return {
-        before: "/images/sewage/sewage_singanallur.jpg",
-        after: isCompleted ? "/images/completed/sewage_fixed_singanallur.jpg" : undefined
-      };
-    }
-    if (normArea.includes("townhall")) {
-      return {
-        before: "/images/sewage/sewage_townhall.jpg",
-        after: isCompleted ? "/images/completed/sewage_fixed_townhall.jpg" : undefined
-      };
-    }
     return {
-      before: "/images/sewage/sewage_default.jpg",
-      after: isCompleted ? "/images/completed/sewage_fixed_default.jpg" : undefined
+      before: "/images/sewage_before.jpg",
+      after: isCompleted ? "/images/sewage_after.jpg" : undefined
     };
   }
 
   return {
-    before: "/images/road/road_damage_default.jpg",
-    after: isCompleted ? "/images/completed/road_fixed_default.jpg" : undefined
+    before: "/images/road/road_damage_default.jpeg",
+    after: isCompleted ? "/images/completed/road_fixed_default.jpeg" : undefined
   };
 };
 
@@ -331,7 +277,7 @@ export const generateSeededIssues = (): CivicIssue[] => {
       afterImage: imgData.after,
       remarks: isCompleted ? `Municipal restoration work completed successfully. Excavated area cleared and asphalt laid by CCMC team.` : undefined,
       comments: [
-        { id: `cmt-1-${id}`, userId: "cit-101", userName: "R. Prakash", userRole: "citizen", text: "This blocks school vans in the morning. Extremely dangerous.", createdAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString() },
+        { id: `cmt-1-${id}`, userId: "cit-101", userName: "Yeswanth kumar D.", userRole: "citizen", text: "This blocks school vans in the morning. Extremely dangerous.", createdAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString() },
         { id: `cmt-2-${id}`, userId: "cit-103", userName: "K. Meenakshi", userRole: "citizen", text: "Reported to ward office but no action yet, hoping CivicEye automates it.", createdAt: new Date(Date.now() - 12 * 3600 * 1000).toISOString() }
       ],
       ratings: isCompleted ? [5, 4, 5] : [],
@@ -345,12 +291,12 @@ export const generateSeededIssues = (): CivicIssue[] => {
     list.push(issue);
   }
 
-  // Append custom sample cases filed by R. Prakash (cit-101 / cit-1)
-  const prakashIssues: CivicIssue[] = [
+  // Append custom sample cases filed by Yeswanth kumar D. (cit-101 / cit-1)
+  const yeswanthIssues: CivicIssue[] = [
     {
       id: "CIV-COI-9001",
       reportNumber: "9001",
-      reporterName: "R. Prakash",
+      reporterName: "Yeswanth kumar D.",
       userId: "cit-101",
       title: "Major Drinking Water Leakage on Sathy Road",
       description: "Severe drinking water main pipe leakage. Thousands of liters of pure water are wasted on the road since morning. Public requested immediate repair.",
@@ -371,7 +317,7 @@ export const generateSeededIssues = (): CivicIssue[] => {
       assignedOfficer: "S. Ganeshan",
       localSupervisor: "Savitha CCMC",
       delayProbability: 12,
-      beforeImg: "/images/water/water_leak_gandhipuram.jpg",
+      beforeImg: "/images/water_before.jpg",
       geotag: { lat: 11.0183, lng: 76.9725 },
       exifData: {
         latitude: 11.0183,
@@ -390,11 +336,11 @@ export const generateSeededIssues = (): CivicIssue[] => {
       emails: [],
       isEscalatedToCommissioner: false,
       area: "Gandhipuram",
-      citizenName: "R. Prakash",
+      citizenName: "Yeswanth kumar D.",
       citizenId: "cit-101",
       officerName: "S. Ganeshan",
       urgency: "High",
-      beforeImage: "/images/water/water_leak_gandhipuram.jpg",
+      beforeImage: "/images/water_before.jpg",
       comments: [
         { id: "cmt-9001-1", userId: "cit-102", userName: "Vignesh Kumar", userRole: "citizen", text: "Water is flowing into nearby shops. Please fix quickly!", createdAt: new Date().toISOString() }
       ],
@@ -403,7 +349,7 @@ export const generateSeededIssues = (): CivicIssue[] => {
     {
       id: "CIV-COI-9002",
       reportNumber: "9002",
-      reporterName: "R. Prakash",
+      reporterName: "Yeswanth kumar D.",
       userId: "cit-101",
       title: "Unfilled Potholes near Gandhipuram Bus Stand",
       description: "Extremely deep potholes near the bus stand exit curve. Two-wheelers are slipping constantly in the dark hours. Extremely hazardous for public commuters.",
@@ -424,7 +370,7 @@ export const generateSeededIssues = (): CivicIssue[] => {
       assignedOfficer: "",
       localSupervisor: "Savitha CCMC",
       delayProbability: 5,
-      beforeImg: "/images/road/road_damage_gandhipuram.jpg",
+      beforeImg: "/images/road/road_damage_default.jpeg",
       geotag: { lat: 11.0201, lng: 76.9698 },
       exifData: {
         latitude: 11.0201,
@@ -441,18 +387,18 @@ export const generateSeededIssues = (): CivicIssue[] => {
       emails: [],
       isEscalatedToCommissioner: false,
       area: "Gandhipuram",
-      citizenName: "R. Prakash",
+      citizenName: "Yeswanth kumar D.",
       citizenId: "cit-101",
       officerName: "",
       urgency: "Critical",
-      beforeImage: "/images/road/road_damage_gandhipuram.jpg",
+      beforeImage: "/images/road/road_damage_default.jpeg",
       comments: [],
       createdAt: new Date(Date.now() - 3 * 3600 * 1000).toISOString()
     },
     {
       id: "CIV-COI-9003",
       reportNumber: "9003",
-      reporterName: "R. Prakash",
+      reporterName: "Yeswanth kumar D.",
       userId: "cit-101",
       title: "Garbage Overflow at Gandhipuram 4th Street Bin",
       description: "Large municipal garbage container is completely filled and trash is spilling onto the footpath. Stray dogs are scattering the garbage. Foul smell is spreading in the entire street.",
@@ -473,7 +419,7 @@ export const generateSeededIssues = (): CivicIssue[] => {
       assignedOfficer: "S. Ganeshan",
       localSupervisor: "Savitha CCMC",
       delayProbability: 15,
-      beforeImg: "/images/garbage/garbage_default.jpg",
+      beforeImg: "/images/completed/garbage_fixed_ukkadam.jpg",
       afterImg: "/images/completed/garbage_fixed_default.jpg",
       geotag: { lat: 11.0175, lng: 76.9740 },
       exifData: {
@@ -493,11 +439,11 @@ export const generateSeededIssues = (): CivicIssue[] => {
       emails: [],
       isEscalatedToCommissioner: false,
       area: "Gandhipuram",
-      citizenName: "R. Prakash",
+      citizenName: "Yeswanth kumar D.",
       citizenId: "cit-101",
       officerName: "S. Ganeshan",
       urgency: "Medium",
-      beforeImage: "/images/garbage/garbage_default.jpg",
+      beforeImage: "/images/completed/garbage_fixed_ukkadam.jpg",
       afterImage: "/images/completed/garbage_fixed_default.jpg",
       remarks: "The waste bin was completely cleared, sanitized, and surrounding footpath washed by CCMC sanitation crew.",
       comments: [
@@ -505,10 +451,114 @@ export const generateSeededIssues = (): CivicIssue[] => {
       ],
       createdAt: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(),
       completedAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString()
+    },
+    {
+      id: "CIV-COI-9004",
+      reportNumber: "9004",
+      reporterName: "Yeswanth kumar D.",
+      userId: "cit-101",
+      title: "Non-Functional Streetlights on Sathy Road",
+      description: "Five consecutive streetlights are not working on the main Sathy Road stretch. It becomes pitch dark in the evening, making it unsafe for pedestrians and vehicle riders.",
+      location: "Sathy Road, Gandhipuram, Coimbatore - 641012",
+      zone: "Central Zone",
+      category: "Streetlight Failure",
+      severity: "High",
+      status: "Completed",
+      department: "Electricity",
+      predictedDeadline: "18 hours",
+      predictedDays: 0.75,
+      timeElapsedDays: 0.5,
+      aiConfidence: 93,
+      reasoning: "Lux sensor reading zero on consecutive lampposts. High correlation with local transit hours.",
+      createdAtText: "2d ago",
+      upvotes: 18,
+      citizenVerified: true,
+      assignedOfficer: "B. Ezhilarasan",
+      localSupervisor: "Savitha CCMC",
+      delayProbability: 8,
+      beforeImg: "/images/streetlight_before.jpg",
+      afterImg: "/images/streetlight_after.jpg",
+      geotag: { lat: 11.0190, lng: 76.9730 },
+      exifData: {
+        latitude: 11.0190,
+        longitude: 76.9730,
+        timestamp: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString(),
+        deviceId: "DEV-COI-9004",
+        imageFreshnessScore: 97,
+        locationPlausibilityScore: 100,
+        manipulationCheckScore: 96,
+        isAuthentic: true
+      },
+      verifications: [
+        { name: "K. Murugan", votedAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString(), distanceMeters: 18, antiFraudPassed: true }
+      ],
+      emailDispatched: true,
+      emails: [],
+      isEscalatedToCommissioner: false,
+      area: "Gandhipuram",
+      citizenName: "Yeswanth kumar D.",
+      citizenId: "cit-101",
+      officerName: "B. Ezhilarasan",
+      urgency: "High",
+      beforeImage: "/images/streetlight_before.jpg",
+      afterImage: "/images/streetlight_after.jpg",
+      remarks: "Replaced blown-out LED bulbs and restored cable connection.",
+      comments: [],
+      createdAt: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString(),
+      completedAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString()
+    },
+    {
+      id: "CIV-COI-9005",
+      reportNumber: "9005",
+      reporterName: "Yeswanth kumar D.",
+      userId: "cit-101",
+      title: "Blocked Sewage Drain Overflow near Cross Cut Road",
+      description: "A major domestic sewage line is completely clogged near the Cross Cut Road entrance, causing contaminated black wastewater to overflow directly onto the walking pavements. Extremely bad odor and a severe health hazard.",
+      location: "Cross Cut Road Corner, Gandhipuram, Coimbatore - 641012",
+      zone: "Central Zone",
+      category: "Sewage Overflow",
+      severity: "Critical",
+      status: "Pending",
+      department: "Sewage",
+      predictedDeadline: "6 hours",
+      predictedDays: 0.25,
+      timeElapsedDays: 0.05,
+      aiConfidence: 95,
+      reasoning: "High moisture signature and dark pixel color identification from aerial and citizen-sourced imaging.",
+      createdAtText: "4h ago",
+      upvotes: 32,
+      citizenVerified: false,
+      assignedOfficer: "",
+      localSupervisor: "Savitha CCMC",
+      delayProbability: 5,
+      beforeImg: "/images/sewage_before.jpg",
+      geotag: { lat: 11.0210, lng: 76.9710 },
+      exifData: {
+        latitude: 11.0210,
+        longitude: 76.9710,
+        timestamp: new Date(Date.now() - 4 * 3600 * 1000).toISOString(),
+        deviceId: "DEV-COI-9005",
+        imageFreshnessScore: 99,
+        locationPlausibilityScore: 100,
+        manipulationCheckScore: 98,
+        isAuthentic: true
+      },
+      verifications: [],
+      emailDispatched: false,
+      emails: [],
+      isEscalatedToCommissioner: false,
+      area: "Gandhipuram",
+      citizenName: "Yeswanth kumar D.",
+      citizenId: "cit-101",
+      officerName: "",
+      urgency: "Critical",
+      beforeImage: "/images/sewage_before.jpg",
+      comments: [],
+      createdAt: new Date(Date.now() - 4 * 3600 * 1000).toISOString()
     }
   ];
 
-  list.push(...prakashIssues);
+  list.push(...yeswanthIssues);
 
   return list;
 };

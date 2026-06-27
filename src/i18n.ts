@@ -13,8 +13,8 @@ i18n
       en: { translation: englishTranslations },
       ta: { translation: tamilTranslations },
     },
-    fallbackLng: 'en', // Default local language is English
-    lng: typeof localStorage !== 'undefined' ? (localStorage.getItem('i18nextLng') || 'en') : 'en', // Read persisted language
+    fallbackLng: 'ta', // Default local language is Tamil
+    lng: typeof localStorage !== 'undefined' ? (localStorage.getItem('i18nextLng') || 'ta') : 'ta', // Read persisted language
     interpolation: {
       escapeValue: false, // React already safes from xss
     },

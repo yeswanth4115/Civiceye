@@ -140,7 +140,7 @@ export const CitizenAuthCard: React.FC<CitizenAuthCardProps> = ({ currentCitizen
     setUploadMockFile(`${idName}_scanned.png`);
     // Pre-fill realistic Coimbatore data depending on selection to ease testing
     if (idName === 'aadhaar') {
-      setCitizenName('R. Prakash');
+      setCitizenName('Yeswanth kumar D.');
       setIdNumber('552388129940');
       setTextAddress('14, Sathy Road, Gandhipuram, Coimbatore - 641012');
       setIdType('Aadhaar');
@@ -312,7 +312,7 @@ export const CitizenAuthCard: React.FC<CitizenAuthCardProps> = ({ currentCitizen
               </label>
               <input
                 type="text"
-                placeholder="R. Prakash"
+                placeholder="Yeswanth kumar D."
                 value={citizenName}
                 onChange={(e) => setCitizenName(e.target.value)}
                 className="w-full bg-[#0a0a0c] border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-100 placeholder:text-zinc-700 focus:outline-none focus:border-indigo-500"

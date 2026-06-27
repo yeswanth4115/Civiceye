@@ -44,7 +44,7 @@ export interface ComplaintTable {
   reporterName: string;
   title: string;
   description: string;
-  category: 'Road Damage' | 'Sanitation' | 'Water Leakage' | 'Streetlight' | 'Public Safety' | 'Parks & Trees' | 'Sewage Overflow';
+  category: 'Road Damage' | 'Sanitation' | 'Water Leakage' | 'Streetlight' | 'Public Safety' | 'Parks & Trees' | 'Sewage Overflow' | 'Garbage Overflow' | 'Streetlight Failure';
   severity: 'Low' | 'Medium' | 'High' | 'Critical';
   status: 'Pending' | 'Under Review' | 'Verified' | 'Assigned' | 'In Progress' | 'Completed' | 'Escalated';
   zone: string;
@@ -197,14 +197,14 @@ export class CivicDatabase {
     this.state.users = [
       {
         id: "cit-1",
-        name: "R. Prakash",
+        name: "Yeswanth kumar D.",
         phone: "9876543210",
         password: "password123",
         address: "14, Sathy Road, Gandhipuram, Coimbatore - 641012",
         zone: "Central Zone",
         trustScore: 85,
         isVerified: true,
-        avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80",
+        avatarUrl: "/images/yeswanth_profile.jpg",
         role: "citizen",
         createdAt: "2026-01-10T10:00:00Z"
       },
@@ -244,7 +244,7 @@ export class CivicDatabase {
         documentType: "Aadhaar",
         documentNumber: "552388129940",
         fileName: "aadhaar_scanned.png",
-        extractedName: "R. Prakash",
+        extractedName: "Yeswanth kumar D.",
         extractedAddress: "14, Sathy Road, Gandhipuram, Coimbatore - 641012",
         faceMatchScore: 94.5,
         fraudDetected: false,
@@ -272,7 +272,7 @@ export class CivicDatabase {
         id: "CIV-COI-1001",
         reportNumber: "1001",
         userId: "cit-1",
-        reporterName: "R. Prakash",
+        reporterName: "Yeswanth kumar D.",
         title: "Continuous Underground Water Pipeline Leakage",
         description: "Continuous water leakage from underground pipeline near Gandhipuram bus stand causing road flooding and water wastage.",
         category: "Water Leakage",
@@ -307,7 +307,7 @@ export class CivicDatabase {
         severity: "Medium",
         status: "Assigned",
         zone: "East Zone",
-        beforeImg: "/images/road_before.jpg",
+        beforeImg: "/images/road/road_damage_default.jpeg",
         lat: 11.0287,
         lng: 77.0024,
         createdAt: new Date(Date.now() - 24 * 3600000).toISOString(),
@@ -320,21 +320,21 @@ export class CivicDatabase {
         aiReasoning: "Deep crater on a high-speed transit arterial. High traffic flow density elevates accident risk score.",
         isEscalatedToCommissioner: false,
         verificationsCount: 1,
-        voters: ["R. Prakash"],
+        voters: ["Yeswanth kumar D."],
         upvoters: ["cit-2"]
       },
       {
         id: "CIV-COI-1003",
         reportNumber: "1003",
         userId: "cit-1",
-        reporterName: "R. Prakash",
+        reporterName: "Yeswanth kumar D.",
         title: "Overflowing Garbage Bins on DB Road",
         description: "Garbage bins overflowing for 3 days causing foul smell and stray dog activity.",
-        category: "Sanitation",
+        category: "Garbage Overflow",
         severity: "High",
         status: "Pending",
         zone: "West Zone",
-        beforeImg: "/images/garbage_before.jpg",
+        beforeImg: "/images/completed/garbage_fixed_ukkadam.jpg",
         lat: 11.0084,
         lng: 76.9512,
         createdAt: new Date(Date.now() - 12 * 3600000).toISOString(),
@@ -348,6 +348,60 @@ export class CivicDatabase {
         verificationsCount: 0,
         voters: [],
         upvoters: []
+      },
+      {
+        id: "CIV-COI-1004",
+        reportNumber: "1004",
+        userId: "cit-1",
+        reporterName: "Yeswanth kumar D.",
+        title: "Non-Functional Streetlights on Sathy Road",
+        description: "Five consecutive streetlights are not working on the main Sathy Road stretch. It becomes pitch dark in the evening, making it unsafe for pedestrians and vehicle riders.",
+        category: "Streetlight Failure",
+        severity: "High",
+        status: "Completed",
+        zone: "Central Zone",
+        beforeImg: "/images/streetlight_before.jpg",
+        afterImg: "/images/streetlight_after.jpg",
+        lat: 11.0190,
+        lng: 76.9730,
+        createdAt: new Date(Date.now() - 48 * 3600000).toISOString(),
+        assignedOfficerId: "off-4",
+        assignedDepartmentId: "dept-4",
+        delayProbability: 8,
+        predictedDays: 0.75,
+        predictedDeadline: "18 hours",
+        aiConfidence: 93.0,
+        aiReasoning: "Lux sensor reading zero on consecutive lampposts. High correlation with local transit hours.",
+        isEscalatedToCommissioner: false,
+        verificationsCount: 1,
+        voters: ["K. Murugan"],
+        upvoters: ["cit-1"]
+      },
+      {
+        id: "CIV-COI-1005",
+        reportNumber: "1005",
+        userId: "cit-1",
+        reporterName: "Yeswanth kumar D.",
+        title: "Blocked Sewage Drain Overflow near Cross Cut Road",
+        description: "A major domestic sewage line is completely clogged near the Cross Cut Road entrance, causing contaminated black wastewater to overflow directly onto the walking pavements.",
+        category: "Sewage Overflow",
+        severity: "Critical",
+        status: "Pending",
+        zone: "Central Zone",
+        beforeImg: "/images/sewage_before.jpg",
+        lat: 11.0210,
+        lng: 76.9710,
+        createdAt: new Date(Date.now() - 4 * 3600000).toISOString(),
+        assignedDepartmentId: "dept-5",
+        delayProbability: 5,
+        predictedDays: 0.25,
+        predictedDeadline: "6 hours",
+        aiConfidence: 95.0,
+        aiReasoning: "High moisture signature and dark pixel color identification from aerial and citizen-sourced imaging.",
+        isEscalatedToCommissioner: false,
+        verificationsCount: 0,
+        voters: [],
+        upvoters: []
       }
     ];
 
@@ -356,7 +410,7 @@ export class CivicDatabase {
       { id: "v-1", complaintId: "CIV-COI-1001", userId: "cit-2", residentName: "Vignesh Kumar", distanceMeters: 45, antiFraudPassed: true, votedAt: new Date(Date.now() - 40 * 3600000).toISOString() },
       { id: "v-2", complaintId: "CIV-COI-1001", userId: "temp-1", residentName: "S. Karthikeyan", distanceMeters: 120, antiFraudPassed: true, votedAt: new Date(Date.now() - 39 * 3600000).toISOString() },
       { id: "v-3", complaintId: "CIV-COI-1001", userId: "temp-2", residentName: "M. Revathi", distanceMeters: 230, antiFraudPassed: true, votedAt: new Date(Date.now() - 38 * 3600000).toISOString() },
-      { id: "v-4", complaintId: "CIV-COI-1002", userId: "cit-1", residentName: "R. Prakash", distanceMeters: 80, antiFraudPassed: true, votedAt: new Date(Date.now() - 10 * 3600000).toISOString() }
+      { id: "v-4", complaintId: "CIV-COI-1002", userId: "cit-1", residentName: "Yeswanth kumar D.", distanceMeters: 80, antiFraudPassed: true, votedAt: new Date(Date.now() - 10 * 3600000).toISOString() }
     ];
 
     // Seed completion images
