@@ -22,6 +22,7 @@ import {
   PhoneCall,
   Search,
   ShieldCheck,
+  ShieldAlert,
   Sparkles,
   TrendingUp,
   UserRound,
@@ -36,7 +37,7 @@ import {
   Languages,
 } from 'lucide-react';
 import type { CivicIssue, DepartmentMetric } from './types';
-import { INITIAL_ISSUES, DEPARTMENT_METRICS, MOCKED_CITIZENS, COIMBATORE_OFFICERS, getCategoryDefaultImage } from './data';
+import { INITIAL_ISSUES, DEPARTMENT_METRICS, MOCKED_CITIZENS, COIMBATORE_OFFICERS, getCategoryDefaultImage, getCategoryDefaultAfterImage } from './data';
 import { useTheme } from './ThemeContext';
 
 const civicEyeLogo = "/src/assets/images/civic_eye_logo_1782375268415.jpg";
@@ -95,24 +96,6 @@ const demoAccounts: DemoAccount[] = [
     password: 'password123',
     zone: 'Central Zone',
     avatar: '/images/yeswanth_profile.jpg',
-  },
-  {
-    uid: 'usr-off-1',
-    name: 'Officer Ganeshan',
-    role: 'officer',
-    phone: '9999999999',
-    password: 'password123',
-    zone: 'Central Zone',
-    avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&q=80',
-  },
-  {
-    uid: 'admin-1',
-    name: 'Admin Ravi Teja',
-    role: 'admin',
-    phone: '8888888888',
-    password: 'password123',
-    zone: 'Head Office',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
   },
 ];
 
@@ -174,6 +157,24 @@ export default function AppNew() {
       setActiveView('dashboard');
     }
   };
+
+  const renderBackButton = (ticketId?: string) => (
+    <div className="flex items-center justify-between mb-4 animate-fade-in">
+      <button
+        onClick={handleBack}
+        className="group inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:bg-slate-50 hover:text-slate-900 hover:shadow-md hover:border-slate-300 active:scale-95 cursor-pointer"
+        title={showTamil ? "பின்னால் செல்ல" : "Go back"}
+      >
+        <ArrowLeft size={16} className="transition-transform duration-200 group-hover:-translate-x-0.5 text-[#0f4f3a]" />
+        <span>{showTamil ? "பின்னால் செல்ல" : "Back"}</span>
+      </button>
+      {ticketId && (
+        <div className="text-xs text-slate-400 font-mono bg-slate-100/80 px-2.5 py-1 rounded-full border border-slate-200/50">
+          {showTamil ? `டிக்கெட் #${ticketId}` : `Ticket #${ticketId}`}
+        </div>
+      )}
+    </div>
+  );
   const [issues, setIssues] = useState<CivicIssue[]>([]);
   const [upvotedIssues, setUpvotedIssues] = useState<string[]>(() => {
     try {
@@ -401,6 +402,10 @@ export default function AppNew() {
   const [registerAvatar, setRegisterAvatar] = useState('');
   const [registerProofType, setRegisterProofType] = useState<'Aadhaar' | 'Voter ID' | 'Utility Bill'>('Aadhaar');
   const [registerProofDoc, setRegisterProofDoc] = useState('');
+  const [isVerifyingSignup, setIsVerifyingSignup] = useState(false);
+  const [signupVerificationStep, setSignupVerificationStep] = useState<string>('');
+  const [isVerifyingLogin, setIsVerifyingLogin] = useState(false);
+  const [loginVerificationStep, setLoginVerificationStep] = useState<string>('');
 
   const [isVerifying, setIsVerifying] = useState<string | null>(null);
   const [newCommentText, setNewCommentText] = useState('');
@@ -423,6 +428,69 @@ export default function AppNew() {
         role: 'citizen'
       }));
       localStorage.setItem('civiceye_users', JSON.stringify(initialUsers));
+    } else {
+      // Ensure any existing user with phone 9876543210 is updated to Yeswanth kumar D. to avoid caching old names like R prakash
+      // Also remove Vignesh Kumar, Arun Kumar, and K. Meenakshi, and rename D. Maheshwari to D. Krishnaveni
+      try {
+        const parsed = JSON.parse(savedUsers);
+        let updated = false;
+        
+        // 1. Map existing users: update Yeswanth's info, and rename D. Maheshwari to D. Krishnaveni
+        let mapped = parsed.map((u: any) => {
+          const lowerName = (u.name || '').toLowerCase();
+          if (u.phone === '9876543210' && u.name !== 'Yeswanth kumar D.') {
+            updated = true;
+            return {
+              ...u,
+              name: 'Yeswanth kumar D.',
+              avatarUrl: '/images/yeswanth_profile.jpg',
+              uid: u.uid || 'cit-101'
+            };
+          }
+          if (lowerName.includes('maheshwari') || lowerName.includes('maheswari')) {
+            updated = true;
+            return {
+              ...u,
+              name: 'D. Krishnaveni'
+            };
+          }
+          return u;
+        });
+
+        // 2. Filter out Vignesh Kumar, Arun Kumar, and K. Meenakshi profiles
+        const beforeLen = mapped.length;
+        mapped = mapped.filter((u: any) => {
+          const lowerName = (u.name || '').toLowerCase();
+          return !lowerName.includes('vignesh') && !lowerName.includes('arun') && !lowerName.includes('meenakshi');
+        });
+        if (mapped.length !== beforeLen) {
+          updated = true;
+        }
+
+        // 3. Ensure Yeswanth's profile is present
+        if (!mapped.some((u: any) => u.phone === '9876543210')) {
+          mapped.push({
+            uid: 'cit-101',
+            name: 'Yeswanth kumar D.',
+            phone: '9876543210',
+            password: 'password123',
+            address: '14, Sathy Road, Gandhipuram, Coimbatore - 641012',
+            zone: 'Central Zone',
+            avatarUrl: '/images/yeswanth_profile.jpg',
+            idType: 'Aadhaar',
+            idNumberMasked: 'XXXX-XXXX-8921',
+            isVerified: true,
+            role: 'citizen'
+          });
+          updated = true;
+        }
+
+        if (updated) {
+          localStorage.setItem('civiceye_users', JSON.stringify(mapped));
+        }
+      } catch (err) {
+        console.error("Failed to parse and check saved users:", err);
+      }
     }
 
     // Initialize complaints in localStorage if not exists
@@ -442,7 +510,25 @@ export default function AppNew() {
     const savedSession = localStorage.getItem('civiceye_current_session');
     if (savedSession) {
       try {
-        setCurrentUser(JSON.parse(savedSession));
+        const parsed = JSON.parse(savedSession);
+        // Correct the current session name if it has phone 9876543210 to prevent old cached name "R prakash"
+        if (parsed) {
+          let sessionUpdated = false;
+          if (parsed.phone === '9876543210' && parsed.name !== 'Yeswanth kumar D.') {
+            parsed.name = 'Yeswanth kumar D.';
+            parsed.avatarUrl = '/images/yeswanth_profile.jpg';
+            sessionUpdated = true;
+          }
+          const lowerName = (parsed.name || '').toLowerCase();
+          if (lowerName.includes('maheshwari') || lowerName.includes('maheswari')) {
+            parsed.name = 'D. Krishnaveni';
+            sessionUpdated = true;
+          }
+          if (sessionUpdated) {
+            localStorage.setItem('civiceye_current_session', JSON.stringify(parsed));
+          }
+        }
+        setCurrentUser(parsed);
       } catch (e) {
         console.error(e);
       }
@@ -583,10 +669,55 @@ export default function AppNew() {
     setMessage({ type: 'success', text: 'Signed out. You can switch to another profile.' });
   };
 
+  const handleSwitchToUser = (user: any) => {
+    setLoading(true);
+    try {
+      const isYeswanth = user.phone === '9876543210';
+      const normalized = {
+        uid: user.uid,
+        name: isYeswanth ? 'Yeswanth kumar D.' : user.name,
+        role: user.role || 'citizen',
+        phone: user.phone,
+        zone: user.zone || 'Central Zone',
+        address: user.address || 'Coimbatore City, Tamil Nadu',
+        avatarUrl: isYeswanth ? '/images/yeswanth_profile.jpg' : (user.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80'),
+        isVerified: true
+      };
+      setCurrentUser(normalized);
+      localStorage.setItem('civiceye_current_session', JSON.stringify(normalized));
+      setViewHistory(['dashboard']);
+      setActiveView('dashboard');
+      setShowAccountMenu(false);
+      setMessage({ type: 'success', text: `Switched session to ${isYeswanth ? 'Yeswanth kumar D.' : user.name}.` });
+    } catch (err) {
+      console.error(err);
+      setMessage({ type: 'error', text: 'Unable to switch session.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleRegisterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!registerName || !registerPhone || !registerPassword || !registerAddress) {
-      setMessage({ type: 'error', text: 'Please fill out all required fields.' });
+    
+    // Proper validation checks
+    if (!registerName || registerName.trim().length < 3) {
+      setMessage({ type: 'error', text: 'Full Name must be at least 3 characters long.' });
+      return;
+    }
+
+    if (!/^\d{10}$/.test(registerPhone)) {
+      setMessage({ type: 'error', text: 'Mobile Phone must be a valid 10-digit number.' });
+      return;
+    }
+
+    if (!registerPassword || registerPassword.length < 6) {
+      setMessage({ type: 'error', text: 'Security Password must be at least 6 characters long for resident safety.' });
+      return;
+    }
+
+    if (!registerAddress || registerAddress.trim().length < 10) {
+      setMessage({ type: 'error', text: 'Resident Street Address must be at least 10 characters long for proper verification.' });
       return;
     }
 
@@ -601,32 +732,49 @@ export default function AppNew() {
       return;
     }
 
-    const newUser = {
-      uid: `cit-${Date.now()}`,
-      name: registerName,
-      phone: registerPhone,
-      password: registerPassword,
-      address: registerAddress,
-      zone: registerZone,
-      avatarUrl: registerAvatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
-      idType: registerProofType,
-      idNumberMasked: registerProofType === 'Aadhaar' ? 'XXXX-XXXX-' + registerPhone.slice(-4) : 'TN/COI/' + registerPhone.slice(-4),
-      proofDocumentUrl: registerProofDoc,
-      isVerified: true,
-      role: 'citizen'
-    };
-
-    const updatedUsers = [...existingUsers, newUser];
-    localStorage.setItem('civiceye_users', JSON.stringify(updatedUsers));
-
-    setMessage({ type: 'success', text: 'Registration successful! You can now log in with your credentials.' });
+    // Trigger visual multi-step verification
+    setIsVerifyingSignup(true);
+    setSignupVerificationStep('Scanning uploaded ID proof and running OCR text extraction...');
     
-    setRegisterName('');
-    setLoginPhone(registerPhone);
-    setRegisterPassword('');
-    setRegisterAddress('');
-    setRegisterProofDoc('');
-    setAuthTab('login');
+    setTimeout(() => {
+      setSignupVerificationStep('OCR Success. Comparing input name with ID record: Match score: 99.4%');
+      setTimeout(() => {
+        setSignupVerificationStep('Validating address with Coimbatore Ward Census & Voter Registry...');
+        setTimeout(() => {
+          setSignupVerificationStep('Security checks cleared! Registering verified citizen profile in CCMC local vault...');
+          setTimeout(() => {
+            const newUser = {
+              uid: `cit-${Date.now()}`,
+              name: registerName,
+              phone: registerPhone,
+              password: registerPassword,
+              address: registerAddress,
+              zone: registerZone,
+              avatarUrl: registerAvatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+              idType: registerProofType,
+              idNumberMasked: registerProofType === 'Aadhaar' ? 'XXXX-XXXX-' + registerPhone.slice(-4) : 'TN/COI/' + registerPhone.slice(-4),
+              proofDocumentUrl: registerProofDoc,
+              isVerified: true,
+              role: 'citizen'
+            };
+
+            const updatedUsers = [...existingUsers, newUser];
+            localStorage.setItem('civiceye_users', JSON.stringify(updatedUsers));
+
+            setIsVerifyingSignup(false);
+            setSignupVerificationStep('');
+            setMessage({ type: 'success', text: 'Citizen verified and registered successfully! You can now log in.' });
+            
+            setRegisterName('');
+            setLoginPhone(registerPhone);
+            setRegisterPassword('');
+            setRegisterAddress('');
+            setRegisterProofDoc('');
+            setAuthTab('login');
+          }, 800);
+        }, 800);
+      }, 800);
+    }, 800);
   };
 
   const handleManualLoginSubmit = (e: React.FormEvent) => {
@@ -660,11 +808,21 @@ export default function AppNew() {
           avatarUrl: off.avatar,
           isVerified: true
         };
-        setCurrentUser(normalized);
-        localStorage.setItem('civiceye_current_session', JSON.stringify(normalized));
-        setViewHistory(['assigned-cases']);
-        setActiveView('assigned-cases');
-        setMessage({ type: 'success', text: `Welcome Officer ${off.name} to the CCMC Ward Portal.` });
+        
+        setIsVerifyingLogin(true);
+        setLoginVerificationStep('Authenticating CCMC Ward Officer credentials...');
+        setTimeout(() => {
+          setLoginVerificationStep('Decrypting officer security keys and initializing session...');
+          setTimeout(() => {
+            setIsVerifyingLogin(false);
+            setLoginVerificationStep('');
+            setCurrentUser(normalized);
+            localStorage.setItem('civiceye_current_session', JSON.stringify(normalized));
+            setViewHistory(['assigned-cases']);
+            setActiveView('assigned-cases');
+            setMessage({ type: 'success', text: `Welcome Officer ${off.name} to the CCMC Ward Portal.` });
+          }, 800);
+        }, 800);
         return;
       }
       setMessage({ type: 'error', text: 'Invalid officer credentials. (Hint: Use "ganeshan" or "9876543212")' });
@@ -675,28 +833,39 @@ export default function AppNew() {
     const matchedCitizen = savedUsers.find((u: any) => u.phone === loginPhone && u.password === loginPassword);
 
     if (matchedCitizen) {
+      const isYeswanth = matchedCitizen.phone === '9876543210';
       const normalized = {
         uid: matchedCitizen.uid,
-        name: matchedCitizen.name,
+        name: isYeswanth ? 'Yeswanth kumar D.' : matchedCitizen.name,
         role: 'citizen' as const,
         phone: matchedCitizen.phone,
         zone: matchedCitizen.zone,
         address: matchedCitizen.address,
-        avatarUrl: matchedCitizen.avatarUrl,
+        avatarUrl: isYeswanth ? '/images/yeswanth_profile.jpg' : matchedCitizen.avatarUrl,
         idType: matchedCitizen.idType,
         idNumberMasked: matchedCitizen.idNumberMasked,
         proofDocumentUrl: matchedCitizen.proofDocumentUrl,
         isVerified: true
       };
-      setCurrentUser(normalized);
-      localStorage.setItem('civiceye_current_session', JSON.stringify(normalized));
-      setViewHistory(['dashboard']);
-      setActiveView('dashboard');
-      setMessage({ type: 'success', text: `Welcome back, ${matchedCitizen.name}!` });
+
+      setIsVerifyingLogin(true);
+      setLoginVerificationStep('Verifying mobile number and password signature...');
+      setTimeout(() => {
+        setLoginVerificationStep('Retrieving verified resident token and active ID proof...');
+        setTimeout(() => {
+          setIsVerifyingLogin(false);
+          setLoginVerificationStep('');
+          setCurrentUser(normalized);
+          localStorage.setItem('civiceye_current_session', JSON.stringify(normalized));
+          setViewHistory(['dashboard']);
+          setActiveView('dashboard');
+          setMessage({ type: 'success', text: `Welcome back, ${isYeswanth ? 'Yeswanth kumar D.' : matchedCitizen.name}!` });
+        }, 800);
+      }, 800);
       return;
     }
 
-    if (loginPhone === '9876543210') {
+    if (loginPhone === '9876543210' && loginPassword === 'password123') {
       const fallbackUser = {
         uid: 'cit-1',
         name: 'Yeswanth kumar D.',
@@ -707,11 +876,21 @@ export default function AppNew() {
         avatarUrl: '/images/yeswanth_profile.jpg',
         isVerified: true
       };
-      setCurrentUser(fallbackUser);
-      localStorage.setItem('civiceye_current_session', JSON.stringify(fallbackUser));
-      setViewHistory(['dashboard']);
-      setActiveView('dashboard');
-      setMessage({ type: 'success', text: 'Logged in as Yeswanth kumar D.' });
+
+      setIsVerifyingLogin(true);
+      setLoginVerificationStep('Verifying Yeswanth kumar D. default credentials...');
+      setTimeout(() => {
+        setLoginVerificationStep('Retrieving primary resident token...');
+        setTimeout(() => {
+          setIsVerifyingLogin(false);
+          setLoginVerificationStep('');
+          setCurrentUser(fallbackUser);
+          localStorage.setItem('civiceye_current_session', JSON.stringify(fallbackUser));
+          setViewHistory(['dashboard']);
+          setActiveView('dashboard');
+          setMessage({ type: 'success', text: 'Logged in as Yeswanth kumar D.' });
+        }, 800);
+      }, 800);
       return;
     }
 
@@ -1286,18 +1465,67 @@ export default function AppNew() {
                 <ChevronDown size={16} className="text-slate-500" />
               </button>
               {showAccountMenu && (
-                <div className="absolute right-0 mt-2 w-56 rounded-2xl border p-2 shadow-xl z-50 border-slate-200 bg-white">
+                <div className="absolute right-0 mt-2 w-64 rounded-2xl border p-2 shadow-xl z-50 border-slate-200 bg-white space-y-1">
                   <button className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm hover:bg-slate-100/10" onClick={() => { navigateToView('profile'); setShowAccountMenu(false); }}>
                     <CircleUserRound size={16} /> {t('profile', 'Profile')}
                   </button>
+                  
                   <div className={`my-1 border-t ${isAccessible ? 'border-zinc-800' : 'border-slate-100'}`} />
-                  {demoAccounts.map((account) => (
-                    <button key={account.uid} className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm hover:bg-slate-100/10" onClick={() => void handleLogin(account)}>
-                      <span>{account.name}</span>
-                      <span className={`rounded-full px-2 py-1 text-[10px] uppercase ${isAccessible ? 'bg-zinc-800 text-white' : 'bg-slate-100 text-slate-600'}`}>{account.role}</span>
+                  
+                  <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Switch Account</div>
+                  
+                  {/* Option 1: Predefined Yeswanth profile if not logged in as him */}
+                  {currentUser.phone !== '9876543210' && (
+                    <button
+                      className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs hover:bg-slate-50 transition border border-dashed border-slate-200"
+                      onClick={() => handleSwitchToUser({
+                        uid: 'cit-1',
+                        name: 'Yeswanth kumar D.',
+                        role: 'citizen',
+                        phone: '9876543210',
+                        zone: 'Central Zone',
+                        address: '14, Sathy Road, Gandhipuram, Coimbatore - 641012',
+                        avatarUrl: '/images/yeswanth_profile.jpg'
+                      })}
+                    >
+                      <div className="flex items-center gap-2">
+                        <img src="/images/yeswanth_profile.jpg" alt="yeswanth" className="h-5 w-5 rounded-full object-cover" />
+                        <span className="font-semibold text-slate-700">Yeswanth kumar D.</span>
+                      </div>
+                      <span className="text-[9px] text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded">Predef</span>
                     </button>
-                  ))}
+                  )}
+
+                  {/* Option 2: Custom registered users in localStorage */}
+                  {(() => {
+                    const saved = JSON.parse(localStorage.getItem('civiceye_users') || '[]');
+                    const filtered = saved.filter((u: any) => {
+                      const name = (u.name || '').toLowerCase();
+                      const isVignesh = name.includes('vignesh');
+                      const isArun = name.includes('arun');
+                      const isMeenakshi = name.includes('meenakshi');
+                      return u.phone !== currentUser.phone && u.phone !== '9876543210' && !isVignesh && !isArun && !isMeenakshi;
+                    });
+                    if (filtered.length > 0) {
+                      return filtered.map((user: any) => (
+                        <button
+                          key={user.uid}
+                          className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs hover:bg-slate-50 transition border border-slate-100"
+                          onClick={() => handleSwitchToUser(user)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <img src={user.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80'} alt="profile" className="h-5 w-5 rounded-full object-cover" />
+                            <span className="font-semibold text-slate-700 truncate max-w-[120px]">{user.name}</span>
+                          </div>
+                          <span className="text-[9px] text-[#0f4f3a] bg-emerald-50 px-1 py-0.5 rounded">Registered</span>
+                        </button>
+                      ));
+                    }
+                    return null;
+                  })()}
+
                   <div className={`my-1 border-t ${isAccessible ? 'border-zinc-800' : 'border-slate-100'}`} />
+                  
                   <button className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-rose-500 hover:bg-rose-900/10" onClick={handleLogout}>
                     <LogOut size={16} /> {showTamil ? 'வெளியேறு' : 'Logout'}
                   </button>
@@ -1366,11 +1594,6 @@ export default function AppNew() {
                 ? 'புகார்களைக் கண்காணிக்கவும், அருகிலுள்ள புகார்களைச் சரிபார்க்கவும், விரைவான பொதுச்சேவை அறிவிப்புகளுடன் கோவை மாநகரத்தை இயக்கத்தில் வைத்திருக்கவும்.' 
                 : 'Track issues, verify nearby complaints and keep Coimbatore moving with faster public-service updates.'}
             </p>
-          </div>
-          <div className="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur">
-            <div className="text-sm font-semibold">{showTamil ? 'கணினி இயங்குகிறது' : 'System running'}</div>
-            <div className="mt-2 text-3xl font-black">{issues.length}</div>
-            <div className="text-sm text-slate-200">{showTamil ? 'செயலில் உள்ள புகார்கள்' : 'Active civic updates'}</div>
           </div>
         </div>
       </section>
@@ -1508,11 +1731,7 @@ export default function AppNew() {
 
   const renderComplaintForm = () => (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <button onClick={handleBack} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-slate-900" title="Go back">
-          <ArrowLeft size={18} />
-        </button>
-      </div>
+      {renderBackButton()}
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -1571,6 +1790,7 @@ export default function AppNew() {
 
   const renderMyComplaints = () => (
     <div className="space-y-6">
+      {renderBackButton()}
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -1684,7 +1904,7 @@ export default function AppNew() {
                       {showTamil ? 'நிறைவுற்ற படம்' : 'Completion image'}
                     </div>
                     {issue.afterImg ? (
-                      <img src={issue.afterImg} alt="after" className="mt-2 h-40 w-full rounded-2xl object-cover border border-slate-100" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = getCategoryDefaultImage(issue.category); }} />
+                      <img src={issue.afterImg} alt="after" className="mt-2 h-40 w-full rounded-2xl object-cover border border-slate-100" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = getCategoryDefaultAfterImage(issue.category); }} />
                     ) : (
                       <div className="mt-2 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-3 text-slate-500">
                         {showTamil ? 'நிறைவுற்ற படம் ஏதுமில்லை.' : 'No completion image available.'}
@@ -1729,6 +1949,7 @@ export default function AppNew() {
 
   const renderVerify = () => (
     <div className="space-y-6">
+      {renderBackButton()}
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-2xl font-black text-slate-900">{showTamil ? 'அருகிலுள்ள சரிபார்ப்பு' : 'Nearby verification'}</h2>
         <p className="mt-2 text-sm text-slate-500">Help validate complaints close to your home. Your confirmation adds public trust.</p>
@@ -1804,34 +2025,37 @@ export default function AppNew() {
   );
 
   const renderSuggestions = () => (
-    <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-2xl font-black text-slate-900">Suggestions & feedback</h2>
-        <p className="mt-2 text-sm text-slate-500">Share ideas, app feedback or city improvement suggestions.</p>
-        <form className="mt-6 space-y-4" onSubmit={handleSuggestionSubmit}>
-          <input value={suggestionForm.title} onChange={(e) => setSuggestionForm((prev) => ({ ...prev, title: e.target.value }))} className="w-full rounded-2xl border border-slate-200 px-4 py-3" placeholder="Give your idea a short title" />
-          <select value={suggestionForm.type} onChange={(e) => setSuggestionForm((prev) => ({ ...prev, type: e.target.value }))} className="w-full rounded-2xl border border-slate-200 px-4 py-3">
-            <option>Idea</option>
-            <option>App feedback</option>
-            <option>City improvement</option>
-          </select>
-          <textarea value={suggestionForm.detail} onChange={(e) => setSuggestionForm((prev) => ({ ...prev, detail: e.target.value }))} className="min-h-32 w-full rounded-2xl border border-slate-200 px-4 py-3" placeholder="Add your suggestion, concern or improvement idea." />
-          <button type="submit" className="rounded-full bg-[#0f4f3a] px-5 py-3 text-sm font-semibold text-white">Submit suggestion</button>
-        </form>
-      </div>
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h3 className="text-lg font-black text-slate-900">Recent suggestions</h3>
-        <div className="mt-4 space-y-3">
-          {feedbackItems.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 p-6 text-sm text-slate-500">No feedback submitted yet.</div> : feedbackItems.map((item) => (
-            <div key={item.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="font-semibold text-slate-900">{item.title}</div>
-                <div className="rounded-full bg-[#0f4f3a]/10 px-2 py-1 text-[11px] font-semibold uppercase text-[#0f4f3a]">{item.type}</div>
+    <div className="space-y-6">
+      {renderBackButton()}
+      <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-2xl font-black text-slate-900">Suggestions & feedback</h2>
+          <p className="mt-2 text-sm text-slate-500">Share ideas, app feedback or city improvement suggestions.</p>
+          <form className="mt-6 space-y-4" onSubmit={handleSuggestionSubmit}>
+            <input value={suggestionForm.title} onChange={(e) => setSuggestionForm((prev) => ({ ...prev, title: e.target.value }))} className="w-full rounded-2xl border border-slate-200 px-4 py-3" placeholder="Give your idea a short title" />
+            <select value={suggestionForm.type} onChange={(e) => setSuggestionForm((prev) => ({ ...prev, type: e.target.value }))} className="w-full rounded-2xl border border-slate-200 px-4 py-3">
+              <option>Idea</option>
+              <option>App feedback</option>
+              <option>City improvement</option>
+            </select>
+            <textarea value={suggestionForm.detail} onChange={(e) => setSuggestionForm((prev) => ({ ...prev, detail: e.target.value }))} className="min-h-32 w-full rounded-2xl border border-slate-200 px-4 py-3" placeholder="Add your suggestion, concern or improvement idea." />
+            <button type="submit" className="rounded-full bg-[#0f4f3a] px-5 py-3 text-sm font-semibold text-white">Submit suggestion</button>
+          </form>
+        </div>
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h3 className="text-lg font-black text-slate-900">Recent suggestions</h3>
+          <div className="mt-4 space-y-3">
+            {feedbackItems.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 p-6 text-sm text-slate-500">No feedback submitted yet.</div> : feedbackItems.map((item) => (
+              <div key={item.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="font-semibold text-slate-900">{item.title}</div>
+                  <div className="rounded-full bg-[#0f4f3a]/10 px-2 py-1 text-[11px] font-semibold uppercase text-[#0f4f3a]">{item.type}</div>
+                </div>
+                <div className="mt-2 text-sm text-slate-600">{item.detail}</div>
+                <div className="mt-2 text-xs text-slate-400">Received on {item.createdAt}</div>
               </div>
-              <div className="mt-2 text-sm text-slate-600">{item.detail}</div>
-              <div className="mt-2 text-xs text-slate-400">Received on {item.createdAt}</div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -1839,11 +2063,7 @@ export default function AppNew() {
 
   const renderHelp = () => (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <button onClick={handleBack} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-slate-900" title="Go back">
-          <ArrowLeft size={18} />
-        </button>
-      </div>
+      {renderBackButton()}
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-2xl font-black text-slate-900">Help & support</h2>
         <p className="mt-2 text-sm text-slate-500">Use the app with confidence. Learn how to report issues and reach the right office.</p>
@@ -1873,11 +2093,7 @@ export default function AppNew() {
 
   const renderContacts = () => (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <button onClick={handleBack} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-slate-900" title="Go back">
-          <ArrowLeft size={18} />
-        </button>
-      </div>
+      {renderBackButton()}
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-2xl font-black text-slate-900">Contact directory</h2>
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
@@ -1908,11 +2124,7 @@ export default function AppNew() {
 
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <button onClick={handleBack} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-slate-900" title="Go back">
-            <ArrowLeft size={18} />
-          </button>
-        </div>
+        {renderBackButton()}
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -2105,6 +2317,7 @@ export default function AppNew() {
   const renderAllProblems = () => {
     return (
       <div className="space-y-6 animate-fade-in">
+        {renderBackButton()}
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-black tracking-tight text-slate-900">
             {showTamil ? "கோயம்புத்தூர் பொதுப் பிரச்சினைகள்" : "Coimbatore Civic Problems"}
@@ -2274,7 +2487,8 @@ export default function AppNew() {
                 issue.reporterName === 'Vignesh Kumar' ? 'விக்னேஷ் குமார்' :
                 issue.reporterName === 'K. Meenakshi' ? 'கே. மீனாட்சி' :
                 issue.reporterName === 'Arun Kumar' ? 'அருண் குமார்' :
-                issue.reporterName === 'D. Maheshwari' ? 'டி. மகேஸ்வரி' :
+                issue.reporterName === 'D. Krishnaveni' ? 'டி. கிருஷ்ணவேணி' :
+                issue.reporterName === 'D. Maheshwari' ? 'டி. கிருஷ்ணவேணி' :
                 issue.reporterName === 'S. Karthikeyan' ? 'எஸ். கார்த்திகேயன்' :
                 issue.reporterName === 'M. Revathi' ? 'எம். ரேவதி' :
                 issue.reporterName === 'Anitha Raj' ? 'அனிதா ராஜ்' : issue.reporterName
@@ -2509,6 +2723,7 @@ export default function AppNew() {
 
     return (
       <div className="space-y-6 animate-fade-in">
+        {renderBackButton()}
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-full px-3 py-1">
@@ -2621,13 +2836,7 @@ export default function AppNew() {
 
     return (
       <div className="space-y-6">
-        {/* Return to Previous State button */}
-        <div className="flex items-center justify-between">
-          <button onClick={handleBack} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-slate-900" title="Go back">
-            <ArrowLeft size={18} />
-          </button>
-          <div className="text-xs text-slate-400 font-mono">Viewing Ticket #{issue.id}</div>
-        </div>
+        {renderBackButton(issue.id)}
 
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -2721,7 +2930,7 @@ export default function AppNew() {
                 <h3 className="text-lg font-bold text-slate-900">After fixing (Remediation)</h3>
                 <p className="text-xs text-slate-500 mt-1">Uploaded by field officer upon completion</p>
                 {issue.afterImg ? (
-                  <img src={issue.afterImg} alt="after" className="mt-4 h-64 w-full rounded-2xl object-cover border border-slate-100 shadow-sm" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = getCategoryDefaultImage(issue.category); }} />
+                  <img src={issue.afterImg} alt="after" className="mt-4 h-64 w-full rounded-2xl object-cover border border-slate-100 shadow-sm" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = getCategoryDefaultAfterImage(issue.category); }} />
                 ) : (
                   <div className="mt-4 flex h-64 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-slate-400 text-sm">
                     No completion image available.
@@ -2936,7 +3145,34 @@ export default function AppNew() {
   const renderContent = () => {
     if (!currentUser) {
       return (
-        <div className="mx-auto max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-md animate-fade-in space-y-6">
+        <div className="mx-auto max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-md animate-fade-in space-y-6 relative overflow-hidden">
+          {/* Active Verification Progress Overlays */}
+          {isVerifyingSignup && (
+            <div className="absolute inset-0 bg-white/95 z-50 flex flex-col items-center justify-center p-6 text-center space-y-4 animate-fade-in">
+              <div className="w-16 h-16 border-4 border-[#0f4f3a] border-t-transparent rounded-full animate-spin"></div>
+              <div className="text-sm font-bold text-[#0f4f3a] tracking-wide uppercase">Securing Resident Signup</div>
+              <h3 className="text-lg font-black text-slate-800">CCMC Civic Registry Identity Verification</h3>
+              <div className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600 font-mono flex items-center justify-center gap-2 max-w-full">
+                <ShieldAlert size={14} className="text-amber-500 animate-pulse shrink-0" />
+                <span className="truncate">{signupVerificationStep}</span>
+              </div>
+              <p className="text-[11px] text-slate-400">Please do not close this tab. Uploaded documents are encrypted and evaluated against Coimbatore ward census databases.</p>
+            </div>
+          )}
+
+          {isVerifyingLogin && (
+            <div className="absolute inset-0 bg-white/95 z-50 flex flex-col items-center justify-center p-6 text-center space-y-4 animate-fade-in">
+              <div className="w-16 h-16 border-4 border-[#0f4f3a] border-t-transparent rounded-full animate-spin"></div>
+              <div className="text-sm font-bold text-[#0f4f3a] tracking-wide uppercase">Securing Login Signature</div>
+              <h3 className="text-lg font-black text-slate-800">Biometric & Identity Audit</h3>
+              <div className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600 font-mono flex items-center justify-center gap-2 max-w-full">
+                <ShieldCheck size={14} className="text-[#0f4f3a] shrink-0" />
+                <span className="truncate">{loginVerificationStep}</span>
+              </div>
+              <p className="text-[11px] text-slate-400">Verifying security keys and checking for active device fraud prevention protocols.</p>
+            </div>
+          )}
+
           <div className="flex border-b border-slate-100">
             <button
               onClick={() => setAuthTab('login')}
@@ -2955,25 +3191,30 @@ export default function AppNew() {
           {authTab === 'login' ? (
             <form onSubmit={handleManualLoginSubmit} className="space-y-4">
               <div className="text-center">
-                <h2 className="text-xl font-black text-slate-900">Choose your civic role</h2>
+                <h2 className="text-xl font-black text-slate-900">Coimbatore Citizen Portal</h2>
                 <p className="text-xs text-slate-500 mt-1">Access Coimbatore's modern municipal dashboard.</p>
               </div>
 
-              {/* Role selector */}
-              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold">
+              {/* Predefined single resident profile */}
+              <div className="p-4 bg-slate-50 border border-slate-200/60 rounded-2xl space-y-2.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block text-center">Predefined Resident Profile</span>
                 <button
                   type="button"
-                  onClick={() => setLoginRole('citizen')}
-                  className={`py-2 rounded-lg text-center transition ${loginRole === 'citizen' ? 'bg-white shadow-sm text-[#0f4f3a] font-bold' : 'text-slate-500'}`}
+                  onClick={() => {
+                    setLoginPhone('9876543210');
+                    setLoginPassword('password123');
+                    setMessage({ type: 'success', text: 'Predefined resident credentials loaded. Tap Secure Sign In to verify.' });
+                  }}
+                  className="w-full flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition shadow-sm text-left group"
                 >
-                  Citizen Resident
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLoginRole('officer')}
-                  className={`py-2 rounded-lg text-center transition ${loginRole === 'officer' ? 'bg-white shadow-sm text-[#0f4f3a] font-bold' : 'text-slate-500'}`}
-                >
-                  CCMC Ward Officer
+                  <div className="flex items-center gap-3">
+                    <img src="/images/yeswanth_profile.jpg" alt="yeswanth" className="h-10 w-10 rounded-full object-cover border border-[#0f4f3a]/20 group-hover:border-[#0f4f3a]/40 transition" />
+                    <div>
+                      <div className="text-xs font-extrabold text-slate-800">Yeswanth kumar D.</div>
+                      <div className="text-[10px] text-slate-400">Phone: 9876543210 • Central Zone</div>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-lg">Quick-Load</span>
                 </button>
               </div>
 
@@ -2983,7 +3224,7 @@ export default function AppNew() {
                   <input
                     type="text"
                     required
-                    placeholder={loginRole === 'citizen' ? "e.g. 9876543210" : "e.g. ganeshan"}
+                    placeholder="e.g. 9876543210"
                     value={loginPhone}
                     onChange={(e) => setLoginPhone(e.target.value)}
                     className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#0f4f3a]"

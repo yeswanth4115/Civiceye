@@ -150,7 +150,7 @@ export const CitizenAuthCard: React.FC<CitizenAuthCardProps> = ({ currentCitizen
       setTextAddress('82, Avinashi Road, Peelamedu, Coimbatore - 641004');
       setIdType('Voter ID');
     } else if (idName === 'tax') {
-      setCitizenName('D. Maheshwari');
+      setCitizenName('D. Krishnaveni');
       setIdNumber('TAX-2026-COI-4530');
       setTextAddress('3B, Podanur Main Road, Coimbatore - 641023');
       setIdType('Property Tax Receipt');

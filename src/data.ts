@@ -21,54 +21,6 @@ export const MOCKED_CITIZENS: VerifiedCitizen[] = [
     faceMatchScore: 94.2,
     isVerified: true,
     avatarUrl: "/images/yeswanth_profile.jpg"
-  },
-  {
-    uid: "cit-102",
-    name: "Vignesh Kumar",
-    idType: "Voter ID",
-    idNumberMasked: "TN/03/021/XXX872",
-    ocrExtractedAddress: "82, Avinashi Road, Peelamedu, Coimbatore - 641004",
-    assignedGeozone: "East Zone",
-    isFraudDetected: false,
-    faceMatchScore: 91.5,
-    isVerified: true,
-    avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80"
-  },
-  {
-    uid: "cit-103",
-    name: "K. Meenakshi",
-    idType: "Property Tax Receipt",
-    idNumberMasked: "TAX-2026-COI-9011",
-    ocrExtractedAddress: "45, DB Road, RS Puram, Coimbatore - 641002",
-    assignedGeozone: "West Zone",
-    isFraudDetected: false,
-    faceMatchScore: 89.9,
-    isVerified: true,
-    avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80"
-  },
-  {
-    uid: "cit-104",
-    name: "Arun Kumar",
-    idType: "Utility Bill",
-    idNumberMasked: "ELEC-EB-987216",
-    ocrExtractedAddress: "112, Thudiyalur Main Road, Coimbatore - 641034",
-    assignedGeozone: "North Zone",
-    isFraudDetected: false,
-    faceMatchScore: 92.1,
-    isVerified: true,
-    avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80"
-  },
-  {
-    uid: "cit-105",
-    name: "D. Maheshwari",
-    idType: "Aadhaar",
-    idNumberMasked: "XXXX-XXXX-4530",
-    ocrExtractedAddress: "3B, Podanur Main Road, Coimbatore - 641023",
-    assignedGeozone: "South Zone",
-    isFraudDetected: false,
-    faceMatchScore: 95.8,
-    isVerified: true,
-    avatarUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80"
   }
 ];
 
@@ -98,7 +50,7 @@ const AREAS_INFO = [
 const CATEGORIES_INFO = [
   { category: "Road Damage" as const, department: "Road", title: "Severe Potholes and Road Crack", desc: "Large crater and deep potholes on the main transit lane, causing severe risk of bike skid accidents and heavy traffic delay during peak hours.", before: "/images/road/road_damage_default.jpeg", after: "/images/completed/road_fixed_default.jpeg" },
   { category: "Water Leakage" as const, department: "Water", title: "Potable Underground Pipeline Leakage", desc: "Main potable water supply pipe leakage detected. Thousands of liters of pure drinking water are being wasted and flooding the surrounding pavements.", before: "/images/water_before.jpg", after: "/images/water_after.jpg" },
-  { category: "Garbage Overflow" as const, department: "Sewage", title: "Overflowing Public Waste Dustbin", desc: "Public waste bins are completely overflowing. Garbage has spread on the road for the last three days causing terrible stench, stray dog hazard, and flies.", before: "/images/completed/garbage_fixed_ukkadam.jpg", after: "/images/completed/garbage_fixed_default.jpg" },
+  { category: "Garbage Overflow" as const, department: "Sewage", title: "Overflowing Public Waste Dustbin", desc: "Public waste bins are completely overflowing. Garbage has spread on the road for the last three days causing terrible stench, stray dog hazard, and flies.", before: "/images/water/sewage_default.jpg", after: "/images/completed/garbage_fixed_default.jpg" },
   { category: "Streetlight Failure" as const, department: "Electricity", title: "Complete Streetlight Segment Outage", desc: "Multiple consecutive municipal streetlights are not working, casting the entire residential road in total darkness and raising severe safety concerns at night.", before: "/images/streetlight_before.jpg", after: "/images/streetlight_after.jpg" },
   { category: "Sewage Overflow" as const, department: "Sewage", title: "Open Sewage Drain Block and Overflow", desc: "Domestic sewage line is clogged, causing raw contaminated wastewater to overflow into the street and residential pathways. Extremely hazardous public health threat.", before: "/images/sewage_before.jpg", after: "/images/sewage_after.jpg" }
 ];
@@ -120,7 +72,7 @@ const CITIZENS_POOL = [
   { name: "Vignesh Kumar", id: "cit-102" },
   { name: "K. Meenakshi", id: "cit-103" },
   { name: "Arun Kumar", id: "cit-104" },
-  { name: "D. Maheshwari", id: "cit-105" },
+  { name: "D. Krishnaveni", id: "cit-105" },
   { name: "S. Karthikeyan", id: "cit-106" },
   { name: "M. Revathi", id: "cit-107" },
   { name: "Anitha Raj", id: "cit-108" }
@@ -141,9 +93,29 @@ export const getCategoryDefaultImage = (category: string): string => {
     return "/images/streetlight_before.jpg";
   }
   if (normalized.includes("garbage") || normalized.includes("dumping") || normalized.includes("waste")) {
-    return "/images/completed/garbage_fixed_ukkadam.jpg";
+    return "/images/water/sewage_default.jpg";
   }
   return "/images/road_before.jpg";
+};
+
+export const getCategoryDefaultAfterImage = (category: string): string => {
+  const normalized = (category || '').trim().toLowerCase();
+  if (normalized.includes("road")) {
+    return "/images/completed/road_fixed_default.jpeg";
+  }
+  if (normalized.includes("water")) {
+    return "/images/water_after.jpg";
+  }
+  if (normalized.includes("sewage")) {
+    return "/images/sewage_after.jpg";
+  }
+  if (normalized.includes("streetlight") || normalized.includes("light")) {
+    return "/images/streetlight_after.jpg";
+  }
+  if (normalized.includes("garbage") || normalized.includes("dumping") || normalized.includes("waste")) {
+    return "/images/completed/garbage_fixed_default.jpg";
+  }
+  return "/images/completed/road_fixed_default.jpeg";
 };
 
 export const getIssueImages = (category: string, area: string, isCompleted: boolean) => {
@@ -169,7 +141,7 @@ export const getIssueImages = (category: string, area: string, isCompleted: bool
       afterImg = "/images/completed/garbage_fixed_podanur.jpg";
     }
     return {
-      before: "/images/completed/garbage_fixed_ukkadam.jpg",
+      before: "/images/water/sewage_default.jpg",
       after: isCompleted ? afterImg : undefined
     };
   }
@@ -419,7 +391,7 @@ export const generateSeededIssues = (): CivicIssue[] => {
       assignedOfficer: "S. Ganeshan",
       localSupervisor: "Savitha CCMC",
       delayProbability: 15,
-      beforeImg: "/images/completed/garbage_fixed_ukkadam.jpg",
+      beforeImg: "/images/water/sewage_default.jpg",
       afterImg: "/images/completed/garbage_fixed_default.jpg",
       geotag: { lat: 11.0175, lng: 76.9740 },
       exifData: {
@@ -443,7 +415,7 @@ export const generateSeededIssues = (): CivicIssue[] => {
       citizenId: "cit-101",
       officerName: "S. Ganeshan",
       urgency: "Medium",
-      beforeImage: "/images/completed/garbage_fixed_ukkadam.jpg",
+      beforeImage: "/images/water/sewage_default.jpg",
       afterImage: "/images/completed/garbage_fixed_default.jpg",
       remarks: "The waste bin was completely cleared, sanitized, and surrounding footpath washed by CCMC sanitation crew.",
       comments: [
