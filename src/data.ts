@@ -56,6 +56,7 @@ const CATEGORIES_INFO = [
 ];
 
 export const COIMBATORE_OFFICERS = [
+  "S. Ganeshan",
   "Eng. Rajendran",
   "Eng. Balasubramani",
   "Officer Manikandan",

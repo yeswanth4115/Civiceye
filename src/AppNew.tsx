@@ -97,6 +97,15 @@ const demoAccounts: DemoAccount[] = [
     zone: 'Central Zone',
     avatar: '/images/yeswanth_profile.jpg',
   },
+  {
+    uid: 'off-ganeshan',
+    name: 'S. Ganeshan',
+    role: 'officer',
+    phone: '9876543212',
+    password: 'password123',
+    zone: 'Central Zone',
+    avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&q=80',
+  },
 ];
 
 const supportCategories = [
@@ -407,6 +416,9 @@ export default function AppNew() {
   const [isVerifyingLogin, setIsVerifyingLogin] = useState(false);
   const [loginVerificationStep, setLoginVerificationStep] = useState<string>('');
 
+  const [isAiVerifying, setIsAiVerifying] = useState(false);
+  const [aiStep, setAiStep] = useState(0);
+
   const [isVerifying, setIsVerifying] = useState<string | null>(null);
   const [newCommentText, setNewCommentText] = useState('');
 
@@ -495,16 +507,42 @@ export default function AppNew() {
 
     // Initialize complaints in localStorage if not exists
     const savedIssues = localStorage.getItem('civiceye_complaints');
+    let loadedIssues = INITIAL_ISSUES;
     if (!savedIssues) {
       localStorage.setItem('civiceye_complaints', JSON.stringify(INITIAL_ISSUES));
-      setIssues(INITIAL_ISSUES);
+      loadedIssues = INITIAL_ISSUES;
     } else {
       try {
-        setIssues(JSON.parse(savedIssues));
+        loadedIssues = JSON.parse(savedIssues);
       } catch (e) {
-        setIssues(INITIAL_ISSUES);
+        loadedIssues = INITIAL_ISSUES;
       }
     }
+
+    // Ensure S. Ganeshan has at least one active complaint (In Progress, Pending, or Escalated)
+    const hasActiveGaneshanCase = loadedIssues.some((issue: any) => {
+      const isAssigned = (issue.assignedOfficer || '').toLowerCase().includes('ganeshan') ||
+                         (issue.officerName || '').toLowerCase().includes('ganeshan');
+      const isActive = issue.status === 'In Progress' || issue.status === 'Pending' || issue.status === 'Escalated';
+      return isAssigned && isActive;
+    });
+
+    if (!hasActiveGaneshanCase) {
+      const ganeshanCase = loadedIssues.find((issue: any) => 
+        (issue.assignedOfficer || '').toLowerCase().includes('ganeshan') ||
+        (issue.officerName || '').toLowerCase().includes('ganeshan')
+      );
+      if (ganeshanCase) {
+        ganeshanCase.status = 'In Progress';
+      } else if (loadedIssues.length > 0) {
+        loadedIssues[0].assignedOfficer = 'S. Ganeshan';
+        loadedIssues[0].officerName = 'S. Ganeshan';
+        loadedIssues[0].status = 'In Progress';
+      }
+      localStorage.setItem('civiceye_complaints', JSON.stringify(loadedIssues));
+    }
+
+    setIssues(loadedIssues);
 
     // Set up default session
     const savedSession = localStorage.getItem('civiceye_current_session');
@@ -784,48 +822,44 @@ export default function AppNew() {
       return;
     }
 
-    if (loginRole === 'officer') {
+    const isOfficerInput = loginRole === 'officer' || loginPhone === '9876543212' || loginPhone.toLowerCase() === 'ganeshan' || loginPhone.toLowerCase().includes('ganeshan') || loginPhone === 'officer';
+    if (isOfficerInput) {
       const matchedOfficerName = COIMBATORE_OFFICERS.find(name => name.toLowerCase().includes(loginPhone.toLowerCase()) || loginPhone === '9876543212' || loginPhone === 'ganeshan');
       
-      if (matchedOfficerName || loginPhone === 'officer') {
-        const offName = matchedOfficerName || 'S. Ganeshan';
-        const offIndex = matchedOfficerName ? COIMBATORE_OFFICERS.indexOf(matchedOfficerName) : 1;
-        const off = {
-          uid: `usr-off-${offIndex}`,
-          name: offName,
-          role: 'officer' as const,
-          phone: loginPhone,
-          zone: 'Central Zone',
-          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80'
-        };
-        const normalized = {
-          uid: off.uid,
-          name: off.name,
-          role: 'officer' as const,
-          phone: loginPhone,
-          zone: off.zone,
-          address: 'Coimbatore Municipal Office',
-          avatarUrl: off.avatar,
-          isVerified: true
-        };
-        
-        setIsVerifyingLogin(true);
-        setLoginVerificationStep('Authenticating CCMC Ward Officer credentials...');
+      const offName = matchedOfficerName || 'S. Ganeshan';
+      const off = {
+        uid: `usr-off-ganeshan`,
+        name: offName,
+        role: 'officer' as const,
+        phone: loginPhone === 'officer' ? '9876543212' : loginPhone,
+        zone: 'Central Zone',
+        avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&q=80'
+      };
+      const normalized = {
+        uid: off.uid,
+        name: off.name,
+        role: 'officer' as const,
+        phone: off.phone,
+        zone: off.zone,
+        address: 'Coimbatore Municipal Office',
+        avatarUrl: off.avatar,
+        isVerified: true
+      };
+      
+      setIsVerifyingLogin(true);
+      setLoginVerificationStep('Authenticating CCMC Ward Officer credentials...');
+      setTimeout(() => {
+        setLoginVerificationStep('Decrypting officer security keys and initializing session...');
         setTimeout(() => {
-          setLoginVerificationStep('Decrypting officer security keys and initializing session...');
-          setTimeout(() => {
-            setIsVerifyingLogin(false);
-            setLoginVerificationStep('');
-            setCurrentUser(normalized);
-            localStorage.setItem('civiceye_current_session', JSON.stringify(normalized));
-            setViewHistory(['assigned-cases']);
-            setActiveView('assigned-cases');
-            setMessage({ type: 'success', text: `Welcome Officer ${off.name} to the CCMC Ward Portal.` });
-          }, 800);
+          setIsVerifyingLogin(false);
+          setLoginVerificationStep('');
+          setCurrentUser(normalized);
+          localStorage.setItem('civiceye_current_session', JSON.stringify(normalized));
+          setViewHistory(['assigned-cases']);
+          setActiveView('assigned-cases');
+          setMessage({ type: 'success', text: `Welcome Officer ${off.name} to the CCMC Ward Portal.` });
         }, 800);
-        return;
-      }
-      setMessage({ type: 'error', text: 'Invalid officer credentials. (Hint: Use "ganeshan" or "9876543212")' });
+      }, 800);
       return;
     }
 
@@ -1496,7 +1530,29 @@ export default function AppNew() {
                     </button>
                   )}
 
-                  {/* Option 2: Custom registered users in localStorage */}
+                  {/* Option 2: Predefined Officer Ganeshan profile if not logged in as him */}
+                  {currentUser.phone !== '9876543212' && (
+                    <button
+                      className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs hover:bg-slate-50 transition border border-dashed border-slate-200"
+                      onClick={() => handleSwitchToUser({
+                        uid: 'off-ganeshan',
+                        name: 'S. Ganeshan',
+                        role: 'officer',
+                        phone: '9876543212',
+                        zone: 'Central Zone',
+                        address: 'CCMC Central Zone Office, Coimbatore - 641001',
+                        avatarUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&q=80'
+                      })}
+                    >
+                      <div className="flex items-center gap-2">
+                        <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&q=80" alt="ganeshan" className="h-5 w-5 rounded-full object-cover" />
+                        <span className="font-semibold text-slate-700">S. Ganeshan (Officer)</span>
+                      </div>
+                      <span className="text-[9px] text-emerald-600 bg-emerald-50 px-1 py-0.5 rounded">Officer</span>
+                    </button>
+                  )}
+
+                  {/* Option 3: Custom registered users in localStorage */}
                   {(() => {
                     const saved = JSON.parse(localStorage.getItem('civiceye_users') || '[]');
                     const filtered = saved.filter((u: any) => {
@@ -1504,7 +1560,8 @@ export default function AppNew() {
                       const isVignesh = name.includes('vignesh');
                       const isArun = name.includes('arun');
                       const isMeenakshi = name.includes('meenakshi');
-                      return u.phone !== currentUser.phone && u.phone !== '9876543210' && !isVignesh && !isArun && !isMeenakshi;
+                      const isKrishnaveni = name.includes('krishnaveni');
+                      return u.phone !== currentUser.phone && u.phone !== '9876543210' && !isVignesh && !isArun && !isMeenakshi && !isKrishnaveni;
                     });
                     if (filtered.length > 0) {
                       return filtered.map((user: any) => (
@@ -1678,6 +1735,22 @@ export default function AppNew() {
                         issue.category === 'Sewage Overflow' ? 'கழிவுநீர் நிரம்பல்' : issue.category
                       ) : issue.category}
                     </div>
+                    {/* Uniform Location of Fault */}
+                    <div className="mt-1.5 flex items-center gap-1 text-xs font-semibold text-slate-600">
+                      <span className="text-emerald-700">📍 {showTamil ? 'பழுதுள்ள இடம் (Location of Fault):' : 'Location of Fault:'}</span>
+                      <a 
+                        href={`https://www.google.com/maps/search/?api=1&query=${issue.geotag ? `${issue.geotag.lat},${issue.geotag.lng}` : encodeURIComponent(issue.location)}`}
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-emerald-600 font-medium hover:underline flex items-center gap-0.5"
+                        title={showTamil ? 'கூகுள் மேப்பில் பார்க்க' : 'View on Google Maps'}
+                      >
+                        {issue.location}
+                        <svg className="w-3 h-3 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </a>
+                    </div>
                   </div>
                   <div className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColors[issue.status] || 'bg-slate-200 text-slate-700'}`}>
                     {showTamil ? (
@@ -1690,7 +1763,11 @@ export default function AppNew() {
                   </div>
                 </div>
                 <div className="mt-3 flex items-center justify-between gap-3 text-sm text-slate-500">
-                  <span>{showTamil ? 'எதிர்பார்க்கப்படும் தீர்வு நாள்:' : 'Expected fix time:'} {issue.predictedDeadline}</span>
+                  {issue.status !== 'Completed' ? (
+                    <span>{showTamil ? 'எதிர்பார்க்கப்படும் தீர்வு நாள்:' : 'Expected fix time:'} {issue.predictedDeadline}</span>
+                  ) : (
+                    <span></span>
+                  )}
                   <button className="font-semibold text-[#0f4f3a] hover:underline" onClick={() => { setSelectedIssueId(issue.id); navigateToView('complaint-detail'); }}>{showTamil ? 'விவரங்களைக் காண்க' : 'View details'}</button>
                 </div>
               </div>
@@ -1828,18 +1905,36 @@ export default function AppNew() {
                 <p className="mt-2 text-sm text-slate-600">
                   {showTamil ? translateTitleAndDesc(issue.title, issue.description).desc : issue.description}
                 </p>
+                {/* Uniform Location of Fault */}
+                <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs font-semibold text-slate-600 bg-slate-50 rounded-xl px-3 py-2 border border-slate-100 w-fit">
+                  <span className="text-emerald-700">📍 {showTamil ? 'பழுதுள்ள இடம் (Location of Fault):' : 'Location of Fault:'}</span>
+                  <a 
+                    href={`https://www.google.com/maps/search/?api=1&query=${issue.geotag ? `${issue.geotag.lat},${issue.geotag.lng}` : encodeURIComponent(issue.location)}`}
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-emerald-600 font-medium hover:underline flex items-center gap-0.5"
+                    title={showTamil ? 'கூகுள் மேப்பில் பார்க்க' : 'View on Google Maps'}
+                  >
+                    {issue.location}
+                    <svg className="w-3 h-3 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
               </div>
               <div className="text-sm text-slate-500">#{issue.id}</div>
             </div>
-            <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <div className="rounded-2xl bg-slate-50 p-3 text-sm text-slate-600">
-                <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                  {showTamil ? 'எதிர்பார்க்கப்படும் தீர்வு நேரம்' : 'Expected fix time'}
+            <div className={`mt-4 grid gap-4 md:grid-cols-2 ${issue.status !== 'Completed' ? 'xl:grid-cols-4' : 'xl:grid-cols-3'}`}>
+              {issue.status !== 'Completed' && (
+                <div className="rounded-2xl bg-slate-50 p-3 text-sm text-slate-600">
+                  <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                    {showTamil ? 'எதிர்பார்க்கப்படும் தீர்வு நேரம்' : 'Expected fix time'}
+                  </div>
+                  <div className="mt-1 font-semibold text-slate-900">
+                    {showTamil && issue.predictedDeadline === '18 hours' ? '18 மணிநேரம்' : (showTamil && issue.predictedDeadline === '3 days' ? '3 நாட்கள்' : issue.predictedDeadline)}
+                  </div>
                 </div>
-                <div className="mt-1 font-semibold text-slate-900">
-                  {showTamil && issue.predictedDeadline === '18 hours' ? '18 மணிநேரம்' : (showTamil && issue.predictedDeadline === '3 days' ? '3 நாட்கள்' : issue.predictedDeadline)}
-                </div>
-              </div>
+              )}
               <div className="rounded-2xl bg-slate-50 p-3 text-sm text-slate-600">
                 <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
                   {showTamil ? 'ஒதுக்கப்பட்ட அதிகாரி' : 'Assigned officer'}
@@ -1988,6 +2083,22 @@ export default function AppNew() {
                 <div>
                   <div className="font-semibold text-slate-900">{translatedInfo.title}</div>
                   <div className="mt-1 text-sm text-slate-500">{translatedArea} • {translatedCategory}</div>
+                  {/* Uniform Location of Fault */}
+                  <div className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-slate-600 bg-slate-50 rounded-xl px-3 py-1.5 border border-slate-150">
+                    <span className="text-emerald-700">📍 {showTamil ? 'பழுதுள்ள இடம் (Location of Fault):' : 'Location of Fault:'}</span>
+                    <a 
+                      href={`https://www.google.com/maps/search/?api=1&query=${issue.geotag ? `${issue.geotag.lat},${issue.geotag.lng}` : encodeURIComponent(issue.location)}`}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-emerald-600 font-medium hover:underline flex items-center gap-0.5"
+                      title={showTamil ? 'கூகுள் மேப்பில் பார்க்க' : 'View on Google Maps'}
+                    >
+                      {issue.location}
+                      <svg className="w-3 h-3 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </a>
+                  </div>
                 </div>
                 <div className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColors[issue.status] || 'bg-slate-100 text-slate-700'}`}>
                   {showTamil ? (
@@ -2258,6 +2369,662 @@ export default function AppNew() {
       </div>
     </div>
   );
+
+  const renderOfficerAssignedCases = () => {
+    const isGaneshan = (currentUser?.name || '').toLowerCase().includes('ganeshan');
+    const assigned = issues.filter((issue) => {
+      const matchName = (issue.assignedOfficer || '').toLowerCase().includes('ganeshan') ||
+                        (issue.officerName || '').toLowerCase().includes('ganeshan');
+      const isAiVerified = issue.aiConfidence >= 75 && (issue.exifData === undefined || issue.exifData?.isAuthentic !== false);
+      return isGaneshan ? (matchName && isAiVerified) : true;
+    });
+
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <span className="text-xs font-bold text-[#0f4f3a] bg-[#0f4f3a]/10 border border-[#0f4f3a]/20 rounded-full px-3 py-1">
+                CCMC Ward Portal • Central Zone
+              </span>
+              <h1 className="text-3xl font-black text-slate-900 mt-2">Officer S. Ganeshan's Desk</h1>
+              <p className="text-slate-500 text-sm mt-1">
+                Displaying high-integrity civic complaints assigned to you and verified by CCMC edge AI classifier.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs font-bold text-slate-500 font-mono">SLA MONITOR ACTIVE</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Info Alert Box */}
+        <div className="flex items-start gap-3 p-4 bg-emerald-50/50 border border-emerald-100 rounded-2xl text-xs text-emerald-800">
+          <ShieldCheck size={18} className="text-emerald-700 shrink-0 mt-0.5" />
+          <div>
+            <span className="font-bold">🔒 Secure AI-Filtered Workspace:</span> These complaints have been checked for EXIF spoofing, spatial-temporal coordinate validation, and visual duplicate detection. Only verified items require field deployment.
+          </div>
+        </div>
+
+        {/* Active Grid */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {assigned.length === 0 ? (
+            <div className="col-span-full rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
+              No active AI-verified complaints assigned to your department.
+            </div>
+          ) : (
+            assigned.map((issue) => {
+              const statusColors: Record<string, string> = {
+                'Pending': 'bg-amber-50 text-amber-700 border-amber-200',
+                'In Progress': 'bg-blue-50 text-blue-700 border-blue-200',
+                'Completed': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                'Escalated': 'bg-rose-50 text-rose-700 border-rose-200'
+              };
+              const severityColors: Record<string, string> = {
+                'Critical': 'bg-rose-100 text-rose-800',
+                'High': 'bg-orange-100 text-orange-800',
+                'Medium': 'bg-yellow-100 text-yellow-800',
+                'Low': 'bg-slate-100 text-slate-800'
+              };
+
+              return (
+                <div key={issue.id} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition duration-200 flex flex-col justify-between space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-mono text-slate-400 font-bold">TICKET #{issue.id}</span>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${statusColors[issue.status] || 'bg-slate-50 border-slate-200 text-slate-600'}`}>
+                        {issue.status}
+                      </span>
+                    </div>
+
+                    <h3 className="text-base font-extrabold text-slate-900 mt-3 line-clamp-1">{issue.title}</h3>
+                    <p className="text-xs text-slate-500 mt-1 line-clamp-2">{issue.description}</p>
+
+                    {/* Uniform Location of Fault */}
+                    <div className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-slate-600 bg-slate-50 rounded-xl px-3 py-1.5 border border-slate-100">
+                      <span className="text-[#0f4f3a]">📍 Location of Fault:</span>
+                      <a 
+                        href={`https://www.google.com/maps/search/?api=1&query=${issue.geotag ? `${issue.geotag.lat},${issue.geotag.lng}` : encodeURIComponent(issue.location)}`}
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-emerald-600 font-medium hover:underline flex items-center gap-0.5 truncate"
+                        title={showTamil ? 'கூகுள் மேப்பில் பார்க்க' : 'View on Google Maps'}
+                      >
+                        {issue.location}
+                        <svg className="w-3 h-3 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </a>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${severityColors[issue.severity] || 'bg-slate-100'}`}>
+                        {issue.severity}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">
+                        {issue.category}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center gap-1">
+                        <ShieldCheck size={10} /> AI Verified ({issue.aiConfidence}%)
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <button
+                      onClick={() => { setSelectedIssueId(issue.id); navigateToView('complaint-detail'); }}
+                      className="flex-1 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 py-2 text-xs font-bold transition flex items-center justify-center gap-1"
+                    >
+                      <Eye size={12} /> View Details
+                    </button>
+                    <button
+                      onClick={() => {
+                        setCompletionForm((prev) => ({ ...prev, complaintId: issue.id }));
+                        navigateToView('update-status');
+                      }}
+                      className="flex-1 rounded-xl bg-[#0f4f3a] hover:bg-[#0c3e2e] text-white py-2 text-xs font-bold transition flex items-center justify-center gap-1"
+                    >
+                      <CheckCircle2 size={12} /> Update Status
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderOfficerUpdateStatus = () => {
+    const isGaneshan = (currentUser?.name || '').toLowerCase().includes('ganeshan');
+    const assigned = issues.filter((issue) => {
+      const matchName = (issue.assignedOfficer || '').toLowerCase().includes('ganeshan') ||
+                        (issue.officerName || '').toLowerCase().includes('ganeshan');
+      const isAiVerified = issue.aiConfidence >= 75 && (issue.exifData === undefined || issue.exifData?.isAuthentic !== false);
+      return isGaneshan ? (matchName && isAiVerified) : true;
+    });
+
+    const handleFormSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!completionForm.complaintId) {
+        setMessage({ type: 'error', text: 'Please select a complaint ticket first.' });
+        return;
+      }
+      
+      setIsSubmitting(true);
+      try {
+        const idx = issues.findIndex(i => i.id === completionForm.complaintId);
+        if (idx === -1) {
+          setMessage({ type: 'error', text: 'Complaint not found.' });
+          setIsSubmitting(false);
+          return;
+        }
+
+        const issue = issues[idx];
+        const comments = issue.comments || [];
+        const updatedComments = [
+          ...comments,
+          {
+            id: `cmt-${Date.now()}`,
+            author: currentUser?.name || 'S. Ganeshan',
+            role: 'officer',
+            text: completionForm.remarks || `Status updated to ${officerStatus}. Work conducted by field engineer.`,
+            timestamp: new Date().toISOString()
+          }
+        ];
+
+        const updatedIssue = {
+          ...issue,
+          status: officerStatus as any,
+          comments: updatedComments,
+          reasoning: `Field Engineer S. Ganeshan status update to: ${officerStatus}. Remarks: ${completionForm.remarks || 'None'}`
+        };
+
+        const updatedIssues = [...issues];
+        updatedIssues[idx] = updatedIssue;
+        setIssues(updatedIssues);
+        localStorage.setItem('civiceye_complaints', JSON.stringify(updatedIssues));
+
+        setCompletionForm({ complaintId: '', remarks: '', afterImg: '' });
+        setMessage({ type: 'success', text: `Ticket #${issue.id} status successfully updated to "${officerStatus}".` });
+        navigateToView('assigned-cases');
+      } catch (err) {
+        console.error(err);
+        setMessage({ type: 'error', text: 'Failed to update ticket status.' });
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
+    return (
+      <div className="space-y-6 animate-fade-in">
+        {renderBackButton()}
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h1 className="text-3xl font-black text-slate-900">Update Case Status</h1>
+          <p className="text-slate-500 text-sm mt-1">Select an assigned active complaint and record remediation milestone updates.</p>
+        </div>
+
+        <div className="max-w-xl mx-auto rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <form onSubmit={handleFormSubmit} className="space-y-5">
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Select Active Complaint Ticket</label>
+              <select
+                value={completionForm.complaintId}
+                onChange={(e) => setCompletionForm(prev => ({ ...prev, complaintId: e.target.value }))}
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-[#0f4f3a] bg-white"
+              >
+                <option value="">-- Choose Assigned Ticket --</option>
+                {assigned.map(i => (
+                  <option key={i.id} value={i.id}>{i.id} - {i.title} ({i.status})</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Milestone / Deployment Status</label>
+              <select
+                value={officerStatus}
+                onChange={(e) => setOfficerStatus(e.target.value)}
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-[#0f4f3a] bg-white"
+              >
+                <option value="In Progress">In Progress - Field Dispatch</option>
+                <option value="Pending">Pending Audit</option>
+                <option value="Escalated">Escalated to Supervisor</option>
+                <option value="Completed">Completed - Resolved</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Detailed Engineering Remarks</label>
+              <textarea
+                value={completionForm.remarks}
+                onChange={(e) => setCompletionForm(prev => ({ ...prev, remarks: e.target.value }))}
+                className="min-h-32 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-[#0f4f3a]"
+                placeholder="Log materials used, crew members dispatched, or technical resolution details."
+                required
+              />
+            </div>
+
+            <div className="flex gap-3 pt-3">
+              <button
+                type="button"
+                onClick={() => navigateToView('assigned-cases')}
+                className="flex-1 rounded-full border border-slate-200 text-slate-700 py-3 text-sm font-semibold hover:bg-slate-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1 rounded-full bg-[#0f4f3a] hover:bg-[#0c3e2e] text-white py-3 text-sm font-semibold transition flex items-center justify-center gap-2"
+              >
+                {isSubmitting ? 'Saving...' : 'Save Milestone'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
+  const renderOfficerUploadCompletion = () => {
+    const isGaneshan = (currentUser?.name || '').toLowerCase().includes('ganeshan');
+    const assigned = issues.filter((issue) => {
+      const matchName = (issue.assignedOfficer || '').toLowerCase().includes('ganeshan') ||
+                        (issue.officerName || '').toLowerCase().includes('ganeshan');
+      const isAiVerified = issue.aiConfidence >= 75 && (issue.exifData === undefined || issue.exifData?.isAuthentic !== false);
+      return isGaneshan ? (matchName && isAiVerified) : true;
+    });
+
+    const aiSteps = [
+      { title: "EXIF & Geolocation Delta", text: "Comparing uploaded image GPS coordinates against original complaint ticket location..." },
+      { title: "Metadata Integrity Scan", text: "Analyzing JPEG headers, camera hash, and device signature authenticity..." },
+      { title: "Remediation Class Audit", text: "Running neural classifier to verify road surface repair / water flow stoppage / rubbish clearance..." },
+      { title: "Securing Digital Ledger Seal", text: "Generating cryptographic integrity stamp and publishing to municipal dashboard..." }
+    ];
+
+    const handleFormSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!completionForm.complaintId) {
+        setMessage({ type: 'error', text: 'Please select a complaint ticket first.' });
+        return;
+      }
+      
+      setIsAiVerifying(true);
+      setAiStep(0);
+      
+      setTimeout(() => {
+        setAiStep(1);
+        setTimeout(() => {
+          setAiStep(2);
+          setTimeout(() => {
+            setAiStep(3);
+            setTimeout(() => {
+              finishCompletion();
+            }, 1000);
+          }, 1000);
+        }, 1000);
+      }, 1000);
+    };
+
+    const finishCompletion = () => {
+      try {
+        const idx = issues.findIndex(i => i.id === completionForm.complaintId);
+        if (idx === -1) {
+          setMessage({ type: 'error', text: 'Complaint not found.' });
+          setIsAiVerifying(false);
+          return;
+        }
+
+        const issue = issues[idx];
+        let afterImg = completionForm.afterImg;
+        if (!afterImg) {
+          if (issue.category === 'Water Leakage') {
+            afterImg = '/images/water_after.jpg';
+          } else if (issue.category === 'Road Damage') {
+            afterImg = '/images/completed/road_fixed_default.jpeg';
+          } else if (issue.category.includes('Streetlight')) {
+            afterImg = '/images/streetlight_after.jpg';
+          } else if (issue.category.includes('Sewage')) {
+            afterImg = '/images/sewage_after.jpg';
+          } else {
+            afterImg = '/images/completed/garbage_fixed_default.jpg';
+          }
+        }
+
+        const comments = issue.comments || [];
+        const updatedComments = [
+          ...comments,
+          {
+            id: `cmt-${Date.now()}`,
+            author: currentUser?.name || 'S. Ganeshan',
+            role: 'officer',
+            text: completionForm.remarks || `Resolution completed with photographic evidence verified by Ward Officer and approved by CCMC AI ledger.`,
+            timestamp: new Date().toISOString()
+          }
+        ];
+
+        const updatedIssue = {
+          ...issue,
+          status: 'Completed' as const,
+          afterImg: afterImg,
+          afterImage: afterImg,
+          comments: updatedComments,
+          reasoning: 'Resolution audited and verified. Before/After visual comparison matched with 98.4% AI confidence. Closed by S. Ganeshan.'
+        };
+
+        const updatedIssues = [...issues];
+        updatedIssues[idx] = updatedIssue;
+        setIssues(updatedIssues);
+        localStorage.setItem('civiceye_complaints', JSON.stringify(updatedIssues));
+
+        setCompletionForm({ complaintId: '', remarks: '', afterImg: '' });
+        setIsAiVerifying(false);
+        setMessage({ type: 'success', text: `Verification passed! Ticket #${issue.id} has been marked Completed.` });
+        navigateToView('assigned-cases');
+      } catch (err) {
+        console.error(err);
+        setIsAiVerifying(false);
+        setMessage({ type: 'error', text: 'Failed to save completed proof.' });
+      }
+    };
+
+    return (
+      <div className="space-y-6 animate-fade-in">
+        {renderBackButton()}
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h1 className="text-3xl font-black text-slate-900">Upload Resolution Proof</h1>
+          <p className="text-slate-500 text-sm mt-1">Upload photographic proof of completed work to trigger the CCMC multi-step AI spatial validation audit.</p>
+        </div>
+
+        {isAiVerifying && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-xl space-y-4 animate-scale-in">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/60 px-2.5 py-0.5 rounded-full font-mono uppercase tracking-wide">CCMC AI Validator</span>
+                <span className="text-xs font-mono font-bold text-slate-400">Step {aiStep + 1}/4</span>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-black text-slate-900">Validating Remediation Integrity</h3>
+                <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                  <div className="bg-[#0f4f3a] h-full transition-all duration-300" style={{ width: `${(aiStep + 1) * 25}%` }} />
+                </div>
+              </div>
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-start gap-3">
+                <div className="w-5 h-5 border-2 border-[#0f4f3a] border-t-transparent rounded-full animate-spin mt-0.5 shrink-0" />
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800">{aiSteps[aiStep].title}</h4>
+                  <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{aiSteps[aiStep].text}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="max-w-xl mx-auto rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <form onSubmit={handleFormSubmit} className="space-y-5">
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Select Completed Complaint Ticket</label>
+              <select
+                value={completionForm.complaintId}
+                onChange={(e) => setCompletionForm(prev => ({ ...prev, complaintId: e.target.value }))}
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-[#0f4f3a] bg-white"
+              >
+                <option value="">-- Choose Assigned Ticket --</option>
+                {assigned.map(i => (
+                  <option key={i.id} value={i.id}>{i.id} - {i.title} ({i.status})</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Final Completion Comments</label>
+              <textarea
+                value={completionForm.remarks}
+                onChange={(e) => setCompletionForm(prev => ({ ...prev, remarks: e.target.value }))}
+                className="min-h-24 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-[#0f4f3a]"
+                placeholder="Detail the technical parameters of the fix (e.g. 2 tons of bituminous mix applied, leak sealed with heavy-duty sleeve clamp)."
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Remediation Proof Photo</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleProofFileChange(e, 'after')}
+                className="w-full rounded-2xl border border-dashed border-slate-300 p-4 text-xs font-bold text-slate-500 bg-slate-50 cursor-pointer"
+              />
+              {completionForm.afterImg && (
+                <div className="mt-4 rounded-2xl overflow-hidden border border-slate-200">
+                  <img src={completionForm.afterImg} alt="after preview" className="h-48 w-full object-cover" />
+                </div>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              className="w-full rounded-full bg-[#0f4f3a] hover:bg-[#0c3e2e] text-white py-3.5 text-sm font-semibold transition flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+            >
+              Verify & Seal Resolution
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
+  const renderOfficerPerformance = () => {
+    const activeZone = currentUser?.zone || 'Central Zone';
+    const zoneIssues = issues.filter((issue) => issue.zone === activeZone);
+    const boards = ["Water", "Road", "Sewage", "Electricity"];
+
+    const getComplianceColor = (sla: number) => {
+      if (sla >= 80) return { text: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', fill: 'bg-emerald-600' };
+      if (sla >= 50) return { text: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200', fill: 'bg-amber-500' };
+      return { text: 'text-rose-700', bg: 'bg-rose-50', border: 'border-rose-200', fill: 'bg-rose-600' };
+    };
+
+    const downloadZoneReport = (dept: string) => {
+      const deptIssues = zoneIssues.filter(i => i.department.toLowerCase() === dept.toLowerCase());
+      
+      let reportStr = `========================================================\n`;
+      reportStr += `COIMBATORE CITY MUNICIPAL CORPORATION\n`;
+      reportStr += `ZONE BOARD PERFORMANCE & COMPLAINTS REPORT\n`;
+      reportStr += `========================================================\n\n`;
+      reportStr += `OFFICER NAME    : ${currentUser?.name || 'S. Ganeshan'}\n`;
+      reportStr += `DEPARTMENT      : ${dept.toUpperCase()} BOARD\n`;
+      reportStr += `MUNICIPAL ZONE  : ${activeZone.toUpperCase()}\n`;
+      reportStr += `GENERATED ON    : ${new Date().toLocaleString()}\n`;
+      reportStr += `STATUS          : OFFICIAL AUDIT DATA\n`;
+      reportStr += `--------------------------------------------------------\n\n`;
+      
+      const total = deptIssues.length;
+      const solved = deptIssues.filter(i => i.status === 'Completed').length;
+      const progress = deptIssues.filter(i => i.status === 'In Progress').length;
+      const escalations = deptIssues.filter(i => i.status === 'Escalated').length;
+      const pending = total - solved - progress - escalations;
+      const sla = total > 0 ? Math.round((solved / total) * 100) : 85;
+
+      reportStr += `SUMMARY METRICS:\n`;
+      reportStr += `----------------\n`;
+      reportStr += `- Total Registered Cases : ${total}\n`;
+      reportStr += `- Solved / Resolved Cases: ${solved}\n`;
+      reportStr += `- Work In Progress       : ${progress}\n`;
+      reportStr += `- Pending Public Audit   : ${pending}\n`;
+      reportStr += `- SLA Overdue Escalations: ${escalations}\n`;
+      reportStr += `- SLA Compliance Score   : ${sla}%\n\n`;
+      
+      reportStr += `CASE STATEMENTS LOG:\n`;
+      reportStr += `--------------------\n`;
+      if (deptIssues.length === 0) {
+        reportStr += `No active or resolved complaint files logged in this zone.\n`;
+      } else {
+        deptIssues.forEach((issue, index) => {
+          reportStr += `${index + 1}. Ticket ID: ${issue.id}\n`;
+          reportStr += `   Title      : ${issue.title}\n`;
+          reportStr += `   Area       : ${issue.area || issue.location.split(',')[0]}\n`;
+          reportStr += `   Status     : ${issue.status}\n`;
+          reportStr += `   Severity   : ${issue.severity}\n`;
+          reportStr += `   Upvotes    : ${issue.upvotes || 0}\n`;
+          reportStr += `   Reporter   : ${issue.reporterName}\n`;
+          reportStr += `   Registered : ${issue.createdAtText || 'Recent'}\n`;
+          if (issue.remarks) {
+            reportStr += `   Remarks    : ${issue.remarks}\n`;
+          }
+          reportStr += `   --------------------------------------------------\n`;
+        });
+      }
+      
+      const blob = new Blob([reportStr], { type: 'text/plain;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `CCMC_Report_${dept}_${activeZone.replace(/\s+/g, '_')}.txt`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      setMessage({ 
+        type: 'success', 
+        text: `Performance report for ${dept} department downloaded successfully!` 
+      });
+    };
+
+    return (
+      <div className="space-y-6 animate-fade-in">
+        {renderBackButton()}
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <span className="text-xs font-bold text-slate-400 bg-slate-50 border border-slate-200 rounded-full px-3 py-1">
+            Official Performance Ledger
+          </span>
+          <h1 className="text-3xl font-black text-slate-900 mt-2">Overall Performance</h1>
+          <p className="text-slate-500 text-sm mt-1">Real-time KPI scoring, service level indicators, and zone performance insights for S. Ganeshan.</p>
+        </div>
+
+        {/* Core KPI cards */}
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="text-xs font-bold text-slate-400 uppercase">Efficiency Rating</div>
+            <div className="mt-2 text-3xl font-black text-[#0f4f3a]">94%</div>
+            <p className="text-[10px] text-emerald-600 font-semibold mt-1">▲ +2.4% vs last quarter</p>
+          </div>
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="text-xs font-bold text-slate-400 uppercase">Resolution Rate</div>
+            <div className="mt-2 text-3xl font-black text-slate-900">88.5%</div>
+            <p className="text-[10px] text-slate-500 mt-1">SLA average within 3-day window</p>
+          </div>
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="text-xs font-bold text-slate-400 uppercase">Avg Response Speed</div>
+            <div className="mt-2 text-3xl font-black text-slate-900">12.4 Hrs</div>
+            <p className="text-[10px] text-[#0f4f3a] font-semibold mt-1">Fastest in Central Zone</p>
+          </div>
+        </div>
+
+        {/* Personal Workload Visualization */}
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 className="text-lg font-black text-slate-900">Workload Statistics</h3>
+            <p className="text-xs text-slate-500 mt-0.5">Distribution of cases assigned to S. Ganeshan</p>
+            
+            <div className="mt-6 space-y-4">
+              <div>
+                <div className="flex justify-between text-xs text-slate-600 font-bold mb-1">
+                  <span>Resolved Issues</span>
+                  <span>14 Cases</span>
+                </div>
+                <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                  <div className="bg-[#0f4f3a] h-full" style={{ width: '82%' }} />
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-xs text-slate-600 font-bold mb-1">
+                  <span>Work In Progress</span>
+                  <span>2 Cases</span>
+                </div>
+                <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                  <div className="bg-blue-500 h-full" style={{ width: '12%' }} />
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-xs text-slate-600 font-bold mb-1">
+                  <span>Escalated / Blocked</span>
+                  <span>1 Case</span>
+                </div>
+                <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                  <div className="bg-rose-500 h-full" style={{ width: '6%' }} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
+            <div>
+              <h3 className="text-lg font-black text-slate-900">Compliance & Audit Sign-off</h3>
+              <p className="text-xs text-slate-500 mt-0.5">Official certification and ledger status.</p>
+              
+              <div className="mt-4 p-4 bg-emerald-50/50 border border-emerald-100 rounded-2xl space-y-3">
+                <div className="flex items-center gap-2 text-xs font-bold text-emerald-800">
+                  <ShieldCheck size={16} /> Verified Officer Profile
+                </div>
+                <p className="text-[11px] text-emerald-700 leading-relaxed">
+                  Your officer profile matches live biometrics registry and has passed our digital signature integrity audit. All actions are cryptographically signed.
+                </p>
+              </div>
+            </div>
+
+            <div className="text-[10px] text-slate-400 font-mono">
+              Ledger ID: GEN-COI-9428-SEC
+            </div>
+          </div>
+        </div>
+
+        {/* Restricting Zone Performance Report only to Ganeshan's Zone */}
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
+          <div>
+            <span className="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-full px-3 py-1">
+              {activeZone} Report Center
+            </span>
+            <h2 className="text-xl font-black text-slate-900 mt-2">Zone Board Performance Reports</h2>
+            <p className="text-xs text-slate-500 mt-0.5">Download performance audits specifically configured for {activeZone}.</p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {boards.map((board) => {
+              const deptIssues = zoneIssues.filter((i) => i.department.toLowerCase() === board.toLowerCase());
+              const total = deptIssues.length;
+              const solved = deptIssues.filter((i) => i.status === 'Completed').length;
+              const slaVal = total > 0 ? Math.round((solved / total) * 100) : (board === 'Water' ? 84 : board === 'Road' ? 71 : board === 'Sewage' ? 58 : 91);
+              const config = getComplianceColor(slaVal);
+
+              return (
+                <div key={board} className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 flex flex-col justify-between gap-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800">{board} Board</h4>
+                      <p className="text-[10px] text-slate-400 mt-0.5">{activeZone} CCMC</p>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${config.text} ${config.bg} ${config.border}`}>
+                      {slaVal}% SLA
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => downloadZoneReport(board)}
+                    className="w-full text-center rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-[11px] font-bold text-slate-700 py-2 transition"
+                  >
+                    📥 Download Report
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const renderAdmin = () => (
     <div className="space-y-6">
@@ -2534,7 +3301,24 @@ export default function AppNew() {
 
                       <h3 className="text-lg font-extrabold text-slate-900 line-clamp-1">{translatedInfo.title}</h3>
                       <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{translatedInfo.desc}</p>
-                      
+
+                      {/* Uniform Location of Fault */}
+                      <div className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-slate-600 bg-slate-50 rounded-xl px-3 py-1.5 border border-slate-100">
+                        <span className="text-[#0f4f3a]">📍 {showTamil ? 'பழுதுள்ள இடம் (Location of Fault):' : 'Location of Fault:'}</span>
+                        <a 
+                          href={`https://www.google.com/maps/search/?api=1&query=${issue.geotag ? `${issue.geotag.lat},${issue.geotag.lng}` : encodeURIComponent(issue.location)}`}
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-emerald-600 font-medium hover:underline flex items-center gap-0.5 truncate"
+                          title={showTamil ? 'கூகுள் மேப்பில் பார்க்க' : 'View on Google Maps'}
+                        >
+                          {issue.location}
+                          <svg className="w-3 h-3 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </a>
+                      </div>
+
                       <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-500 pt-3 border-t border-slate-100">
                         <div>
                           <strong>{showTamil ? "மண்டலம்:" : "Zone:"}</strong> {translatedZone}
@@ -2890,6 +3674,40 @@ export default function AppNew() {
           <p className="mt-4 text-slate-600 leading-relaxed">
             {showTamil ? translateTitleAndDesc(issue.title, issue.description).desc : issue.description}
           </p>
+          {/* Uniform Location of Fault */}
+          <div className="mt-4 space-y-3 bg-slate-50 rounded-2xl p-4 border border-slate-150">
+            <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-600">
+              <span className="text-[#0f4f3a]">📍 {showTamil ? 'பழுதுள்ள இடம் (Location of Fault):' : 'Location of Fault:'}</span>
+              <a 
+                href={`https://www.google.com/maps/search/?api=1&query=${issue.geotag ? `${issue.geotag.lat},${issue.geotag.lng}` : encodeURIComponent(issue.location)}`}
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-emerald-700 font-bold hover:underline flex items-center gap-1"
+                title={showTamil ? 'கூகுள் மேப்பில் பார்க்க' : 'View on Google Maps'}
+              >
+                {issue.location}
+                <svg className="w-3.5 h-3.5 text-[#0f4f3a] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </div>
+
+            {/* Direct Google Map pin view of the point of fault */}
+            {issue.geotag && (
+              <div className="w-full h-[220px] rounded-xl overflow-hidden border border-slate-200 bg-slate-100 relative shadow-sm">
+                <iframe
+                  title="Incident Fault Point Map"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                  src={`https://maps.google.com/maps?q=${issue.geotag.lat},${issue.geotag.lng}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Image comparative layout as requested by Rule 2 */}
@@ -2961,11 +3779,13 @@ export default function AppNew() {
           {/* AI Dispatch Analysis */}
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
             <h3 className="text-lg font-bold text-slate-900">AI Dispatch analysis</h3>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <span className="text-xs text-slate-500 block uppercase font-semibold">Predicted SLA</span>
-                <strong className="text-slate-900 text-base block mt-1">{issue.predictedDeadline}</strong>
-              </div>
+            <div className={`grid gap-4 ${issue.status !== 'Completed' ? 'sm:grid-cols-2' : 'sm:grid-cols-1'}`}>
+              {issue.status !== 'Completed' && (
+                <div className="rounded-2xl bg-slate-50 p-4">
+                  <span className="text-xs text-slate-500 block uppercase font-semibold">Predicted SLA</span>
+                  <strong className="text-slate-900 text-base block mt-1">{issue.predictedDeadline}</strong>
+                </div>
+              )}
               <div className="rounded-2xl bg-slate-50 p-4">
                 <span className="text-xs text-slate-500 block uppercase font-semibold">Model confidence</span>
                 <strong className="text-emerald-700 text-base block mt-1">{issue.aiConfidence}%</strong>
@@ -3191,32 +4011,82 @@ export default function AppNew() {
           {authTab === 'login' ? (
             <form onSubmit={handleManualLoginSubmit} className="space-y-4">
               <div className="text-center">
-                <h2 className="text-xl font-black text-slate-900">Coimbatore Citizen Portal</h2>
-                <p className="text-xs text-slate-500 mt-1">Access Coimbatore's modern municipal dashboard.</p>
+                <h2 className="text-xl font-black text-slate-900">Coimbatore Portal Login</h2>
+                <p className="text-xs text-slate-500 mt-1">Access Coimbatore's unified modern municipal dashboard.</p>
               </div>
 
-              {/* Predefined single resident profile */}
-              <div className="p-4 bg-slate-50 border border-slate-200/60 rounded-2xl space-y-2.5">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block text-center">Predefined Resident Profile</span>
+              {/* Role Select Segment */}
+              <div className="flex bg-slate-100 p-1 rounded-xl">
                 <button
                   type="button"
                   onClick={() => {
-                    setLoginPhone('9876543210');
-                    setLoginPassword('password123');
-                    setMessage({ type: 'success', text: 'Predefined resident credentials loaded. Tap Secure Sign In to verify.' });
+                    setLoginRole('citizen');
+                    setLoginPhone('');
+                    setLoginPassword('');
                   }}
-                  className="w-full flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition shadow-sm text-left group"
+                  className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${loginRole === 'citizen' ? 'bg-white text-[#0f4f3a] shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
                 >
-                  <div className="flex items-center gap-3">
-                    <img src="/images/yeswanth_profile.jpg" alt="yeswanth" className="h-10 w-10 rounded-full object-cover border border-[#0f4f3a]/20 group-hover:border-[#0f4f3a]/40 transition" />
-                    <div>
-                      <div className="text-xs font-extrabold text-slate-800">Yeswanth kumar D.</div>
-                      <div className="text-[10px] text-slate-400">Phone: 9876543210 • Central Zone</div>
-                    </div>
-                  </div>
-                  <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-lg">Quick-Load</span>
+                  Citizen
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginRole('officer');
+                    setLoginPhone('');
+                    setLoginPassword('');
+                  }}
+                  className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${loginRole === 'officer' ? 'bg-white text-[#0f4f3a] shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                >
+                  CCMC Officer
                 </button>
               </div>
+
+              {/* Predefined single resident profile */}
+              {loginRole === 'citizen' ? (
+                <div className="p-4 bg-slate-50 border border-slate-200/60 rounded-2xl space-y-2.5">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block text-center">Predefined Resident Profile</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLoginPhone('9876543210');
+                      setLoginPassword('password123');
+                      setMessage({ type: 'success', text: 'Predefined resident credentials loaded. Tap Secure Sign In to verify.' });
+                    }}
+                    className="w-full flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition shadow-sm text-left group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <img src="/images/yeswanth_profile.jpg" alt="yeswanth" className="h-10 w-10 rounded-full object-cover border border-[#0f4f3a]/20 group-hover:border-[#0f4f3a]/40 transition" />
+                      <div>
+                        <div className="text-xs font-extrabold text-slate-800">Yeswanth kumar D.</div>
+                        <div className="text-[10px] text-slate-400">Phone: 9876543210 • Central Zone</div>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-lg">Quick-Load</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="p-4 bg-slate-50 border border-slate-200/60 rounded-2xl space-y-2.5">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block text-center">Predefined Officer Profile</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLoginPhone('ganeshan');
+                      setLoginPassword('password123');
+                      setMessage({ type: 'success', text: 'Officer Ganeshan credentials loaded. Tap Secure Sign In to verify.' });
+                    }}
+                    className="w-full flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition shadow-sm text-left group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&q=80" alt="ganeshan" className="h-10 w-10 rounded-full object-cover border border-[#0f4f3a]/20 group-hover:border-[#0f4f3a]/40 transition" />
+                      <div>
+                        <div className="text-xs font-extrabold text-slate-800">S. Ganeshan</div>
+                        <div className="text-[10px] text-slate-400">Username: ganeshan • Central Zone</div>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold text-[#0f4f3a] bg-[#0f4f3a]/10 border border-[#0f4f3a]/20 px-2 py-0.5 rounded-lg">Quick-Load</span>
+                  </button>
+                </div>
+              )}
 
               <div className="space-y-3">
                 <div>
@@ -3419,13 +4289,19 @@ export default function AppNew() {
     }
 
     if (currentUser.role === 'officer') {
-      if (activeView === 'assigned-cases' || activeView === 'upload-completion' || activeView === 'update-status') {
-        return renderOfficerDesk();
+      if (activeView === 'assigned-cases') {
+        return renderOfficerAssignedCases();
+      }
+      if (activeView === 'update-status') {
+        return renderOfficerUpdateStatus();
+      }
+      if (activeView === 'upload-completion') {
+        return renderOfficerUploadCompletion();
       }
       if (activeView === 'performance') {
-        return renderAdmin();
+        return renderOfficerPerformance();
       }
-      return renderOfficerDesk();
+      return renderOfficerAssignedCases();
     }
 
     if (currentUser.role === 'admin') {

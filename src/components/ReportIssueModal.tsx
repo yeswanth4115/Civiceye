@@ -3,6 +3,79 @@ import { AlertCircle, Camera, CheckCircle2, Loader2, MapPin, Sparkles, Send, Shi
 import { CivicIssue, IssueCategory, VerifiedCitizen, ExifMetadata } from '../types';
 import { EvidenceCaptureCard } from './EvidenceCaptureCard';
 
+const resolveAreaAndAddress = (lat: number, lng: number) => {
+  // Exact checks for mock scenarios
+  if (Math.abs(lat - 11.0287) < 0.001 && Math.abs(lng - 77.0024) < 0.001) {
+    return {
+      area: "Peelamedu",
+      address: "Avinashi Road near PSG College of Technology, Peelamedu, Coimbatore - 641004"
+    };
+  }
+  if (Math.abs(lat - 11.0084) < 0.001 && Math.abs(lng - 76.9512) < 0.001) {
+    return {
+      area: "RS Puram",
+      address: "DB Road, near RS Puram Post Office, RS Puram, Coimbatore - 641002"
+    };
+  }
+  if (Math.abs(lat - 11.0812) < 0.001 && Math.abs(lng - 76.9416) < 0.001) {
+    return {
+      area: "Thudiyalur",
+      address: "Mettupalayam Road, near Thudiyalur Junction, Coimbatore - 641034"
+    };
+  }
+  if (Math.abs(lat - 10.9758) < 0.001 && Math.abs(lng - 76.9624) < 0.001) {
+    return {
+      area: "Podanur",
+      address: "Podanur Main Road, near Podanur Railway Station, Coimbatore - 641023"
+    };
+  }
+  if (Math.abs(lat - 11.0183) < 0.001 && Math.abs(lng - 76.9725) < 0.001) {
+    return {
+      area: "Gandhipuram",
+      address: "14, Sathy Road, Gandhipuram, Coimbatore - 641012"
+    };
+  }
+
+  // Find nearest from AREAS_INFO
+  const AREAS_INFO = [
+    { name: "Gandhipuram", lat: 11.0183, lng: 76.9725, pincode: "641012", prefix: "Sathy Road" },
+    { name: "RS Puram", lat: 11.0084, lng: 76.9512, pincode: "641002", prefix: "DB Road" },
+    { name: "Town Hall", lat: 10.9967, lng: 76.9614, pincode: "641001", prefix: "Oppanakara Street" },
+    { name: "Race Course", lat: 10.9996, lng: 76.9774, pincode: "641018", prefix: "Race Course Road" },
+    { name: "Sivananda Colony", lat: 11.0253, lng: 76.9644, pincode: "641012", prefix: "Sivananda Colony Main Road" },
+    { name: "Peelamedu", lat: 11.0287, lng: 77.0024, pincode: "641004", prefix: "Avinashi Road" },
+    { name: "Singanallur", lat: 11.0026, lng: 77.0238, pincode: "641005", prefix: "Trichy Road" },
+    { name: "Ganapathy", lat: 11.0312, lng: 76.9815, pincode: "641006", prefix: "Sathy Road" },
+    { name: "Vilankurichi", lat: 11.0458, lng: 77.0215, pincode: "641035", prefix: "Vilankurichi Road" },
+    { name: "Kalapatti", lat: 11.0621, lng: 77.0392, pincode: "641048", prefix: "Kalapatti Main Road" },
+    { name: "Saibaba Colony", lat: 11.0235, lng: 76.9452, pincode: "641011", prefix: "NSR Road" },
+    { name: "Vadavalli", lat: 11.0212, lng: 76.9015, pincode: "641041", prefix: "Marudhamalai Road" },
+    { name: "Kovaipudur", lat: 10.9525, lng: 76.9112, pincode: "641042", prefix: "Kovaipudur Main Road" },
+    { name: "Mettupalayam Road", lat: 11.0415, lng: 76.9412, pincode: "641043", prefix: "Mettupalayam Road" },
+    { name: "Saravanampatti", lat: 11.0783, lng: 76.9925, pincode: "641035", prefix: "Sathy Road" },
+    { name: "Thudiyalur", lat: 11.0812, lng: 76.9416, pincode: "641034", prefix: "Mettupalayam Road" },
+    { name: "Ukkadam", lat: 10.9856, lng: 76.9621, pincode: "641001", prefix: "Ukkadam Bypass Road" },
+    { name: "Podanur", lat: 10.9758, lng: 76.9624, pincode: "641023", prefix: "Podanur Main Road" },
+    { name: "Kuniamuthur", lat: 10.9635, lng: 76.9385, pincode: "641008", prefix: "Palakkad Main Road" },
+    { name: "Sundarapuram", lat: 10.9512, lng: 76.9685, pincode: "641024", prefix: "Pollachi Main Road" }
+  ];
+
+  let nearest = AREAS_INFO[0];
+  let minDistance = Infinity;
+  for (const area of AREAS_INFO) {
+    const dist = Math.sqrt(Math.pow(area.lat - lat, 2) + Math.pow(area.lng - lng, 2));
+    if (dist < minDistance) {
+      minDistance = dist;
+      nearest = area;
+    }
+  }
+
+  return {
+    area: nearest.name,
+    address: `${nearest.prefix}, ${nearest.name}, Coimbatore - ${nearest.pincode}`
+  };
+};
+
 interface ReportIssueModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -25,7 +98,8 @@ export const ReportIssueModal: React.FC<ReportIssueModalProps> = ({ isOpen, onCl
   const handleCaptureCompleted = (img: string, exif: ExifMetadata) => {
     setImgUrl(img);
     setExifData(exif);
-    setLocation(`Coimbatore Municipal limits (GPS: ${exif.latitude.toFixed(4)}, ${exif.longitude.toFixed(4)})`);
+    const resolved = resolveAreaAndAddress(exif.latitude, exif.longitude);
+    setLocation(resolved.address);
     setStep(2); // advance to description form
   };
 
@@ -104,13 +178,18 @@ export const ReportIssueModal: React.FC<ReportIssueModalProps> = ({ isOpen, onCl
     const reporterName = currentCitizen ? currentCitizen.name : "Anonymous Resident";
     const zone = currentCitizen ? currentCitizen.assignedGeozone : "Central Zone";
 
+    const finalLat = exifData ? exifData.latitude : 11.0183;
+    const finalLng = exifData ? exifData.longitude : 76.9725;
+    const resolved = resolveAreaAndAddress(finalLat, finalLng);
+
     const newIssue: CivicIssue = {
       id: `CIV-COI-${reportNum}`,
       reportNumber: reportNum,
       reporterName,
       title,
       description: description || 'No detailed description provided.',
-      location: location || 'GPS Location: 11.0183, 76.9725',
+      location: location || resolved.address,
+      area: resolved.area,
       zone,
       category: classification.category,
       severity: classification.severity,
@@ -129,8 +208,8 @@ export const ReportIssueModal: React.FC<ReportIssueModalProps> = ({ isOpen, onCl
       delayProbability: 10,
       beforeImg: imgUrl,
       geotag: {
-        lat: exifData ? exifData.latitude : 11.0183,
-        lng: exifData ? exifData.longitude : 76.9725
+        lat: finalLat,
+        lng: finalLng
       },
       exifData: exifData || undefined,
       verifications: [],
