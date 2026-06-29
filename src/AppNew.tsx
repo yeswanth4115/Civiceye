@@ -2398,15 +2398,6 @@ export default function AppNew() {
             </div>
           </div>
         </div>
-
-        {/* Info Alert Box */}
-        <div className="flex items-start gap-3 p-4 bg-emerald-50/50 border border-emerald-100 rounded-2xl text-xs text-emerald-800">
-          <ShieldCheck size={18} className="text-emerald-700 shrink-0 mt-0.5" />
-          <div>
-            <span className="font-bold">🔒 Secure AI-Filtered Workspace:</span> These complaints have been checked for EXIF spoofing, spatial-temporal coordinate validation, and visual duplicate detection. Only verified items require field deployment.
-          </div>
-        </div>
-
         {/* Active Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {assigned.length === 0 ? (
